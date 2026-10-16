@@ -35,6 +35,7 @@ from .artifacts import ArtifactRegistry, valid_task_id
 from .coordinates import READER_COORDINATES, task_coordinates
 from .feedback import reader_batch_reply
 from .parameters import normalize_stringified_parameters
+from .plan_reading import geometry_ready
 
 
 def envelope(value, *, error=False):
@@ -354,9 +355,11 @@ class RoleSession:
         required = ("receipt_file", "plan_sha256")
         draft_status = "passed" if payload.outcome == "succeeded" else "failed"
         if draft_status == "passed":
-            required += ("compiled_numeric_plan_sha256", "candidate", "candidate_source_sha256")
+            required += ("compiled_numeric_plan_sha256", "candidate")
+            required += (("reading_product_file", "reading_product_sha256") if structured.get("reading_geometry_ready")
+                         else ("candidate_source_sha256",))
         if (structured.get("status") != draft_status
-                or (draft_status == "passed" and structured.get("source_geometry_ready") is not True)
+                or (draft_status == "passed" and not geometry_ready(structured))
                 or any(not isinstance(structured.get(key), str) or not structured[key] for key in required)):
             return {
                 "status": "unavailable", "event_id": latest.event_id,
@@ -403,7 +406,8 @@ class RoleSession:
                     ("receipt_file", "plan_sha256", "compiled_numeric_plan_sha256")}
         if selection.get("draft_status", selection.get("status")) == "passed":
             identity.update({key: selection[key] for key in
-                             ("candidate", "candidate_source_sha256", "expected_receipt_sha256")})
+                             ("candidate", "candidate_source_sha256", "reading_product_file", "reading_product_sha256", "expected_receipt_sha256")
+                             if key in selection})
             _, receipt = prior.verified_unsubmitted_draft(expected_image_sha256, **identity)
         else:
             _, receipt = prior.verified_failed_draft(expected_image_sha256, **identity)
@@ -442,7 +446,7 @@ class RoleSession:
                     "plan_sha256": receipt["plan_sha256"],
                     "receipt_file": receipt["receipt_file"],
                     "compiled_numeric_plan_sha256": receipt.get("compiled_numeric_plan_sha256"),
-                    **({**{key: receipt[key] for key in ("candidate", "candidate_source_sha256")},
+                    **({**{key: receipt[key] for key in ("candidate", "candidate_source_sha256", "reading_product_file", "reading_product_sha256") if key in receipt},
                         "expected_receipt_sha256": trial_event["expected_receipt_sha256"],
                         "topology_decisions_required": len(receipt.get("topology_issues", []))} if passed else {}),
                     "instruction": (
@@ -1073,7 +1077,7 @@ class RoleSession:
                 validation = prior_record.get("validation") or {}
                 workspace = self.registry.child(task["previous_task_id"]).task_directory / "bim/trial_workspace"
                 from .trial import PlanTrial, canonical_plan_sha256
-                if validation.get("source_geometry_ready") is True and validation.get("validation_passed") is True:
+                if geometry_ready(validation) and validation.get("validation_passed") is True:
                     prior = PlanTrial(None, image_name=task["image"], workspace=workspace,
                                       receipt_directory=workspace / "trial_receipts")
                     _, prior_receipt = prior.verified_plan(validation["plan_sha256"])
@@ -1101,7 +1105,7 @@ class RoleSession:
                                 "submission_accepted": False,
                                 "topology_decisions_required": len(recovered.get("topology_issues", [])),
                                 **{key: recovered[key] for key in
-                                   ("compiled_numeric_plan_sha256", "candidate", "candidate_source_sha256")},
+                                   ("compiled_numeric_plan_sha256", "candidate", "candidate_source_sha256", "reading_product_file", "reading_product_sha256") if key in recovered},
                             })
                         else:
                             trial.inherit_failed_reference(
@@ -1139,10 +1143,15 @@ class RoleSession:
             previous_context = previous_artifact_context(
                 previous, role_id=task["role_id"], artifact_reference=task.get("previous_artifact")
             )
+            from .plan_views import initial_coordinate_view
+            initial_image, initial_view = initial_coordinate_view(raw_image, image_name=task["image"], directory=scoped.run_directory)
+            tools._remember_references({"structuredContent": {"evidence_previews": [initial_view]}})
             content = [{"type": "text", "text": json.dumps({"task": task, "previous_artifact": previous_context,
+                       "input": {"image": task["image"], "original_size": list(size), "sha256": task["input_sha256"]},
+                       "initial_view": initial_view,
                        "coordinates": ELEVATION_COORDINATES if task["role_id"] == "elevation_reader"
                        else READER_COORDINATES[task["role_id"]]}, ensure_ascii=False)},
-                       {"type": "image_url", "image_url": {"url": "data:image/png;base64," + base64.b64encode(raw_image).decode()}}]
+                       {"type": "image_url", "image_url": {"url": "data:image/png;base64," + base64.b64encode(initial_image).decode()}}]
             adapter = self.adapter_factory(task["task_id"], config, child)
             if hasattr(adapter, "close"):
                 stack.push_async_callback(adapter.close)
@@ -1158,7 +1167,7 @@ class RoleSession:
                 fault_hook=self.reader_fault_hook)
             original_ref = child.put_bytes(raw_image, "image/png")
             runtime = await engine.run([{"role": "system", "content": guide}, {"role": "user", "content": content}],
-                image_originals={original_ref.sha256: original_ref}, resume=bool(child.events))
+                image_originals={hashlib.sha256(initial_image).hexdigest(): original_ref}, resume=bool(child.events))
             if task["role_id"] == "plan_reader":
                 runtime["plan_reader_progress"] = tools.progress(started_epoch=runtime.get("started_epoch"))
                 child.write_json("receipt.json", runtime)
@@ -1209,7 +1218,7 @@ class RoleSession:
             self.assembly.guard()
             return await self._build_from_artifact(task_id, sha256, **levels)
 
-    async def _build_from_artifact(self, task_id, sha256, resolved_levels=None, **levels):
+    async def _build_from_artifact(self, task_id, sha256, resolved_levels=None, elevation_readings=None, **levels):
         value = self.registry.read(task_id, sha256=sha256, role_id="plan_reader")
         record = self.registry.records[task_id]
         if not record.get("validation", {}).get("validation_passed"):
@@ -1239,12 +1248,30 @@ class RoleSession:
                 raise ValueError("choose resolved levels or explicit legacy overrides")
             plan, citations = apply_resolved_levels(plan, resolved_levels), resolved_levels
             levels = {"resolved_levels": resolved_levels}
+        materialization = []
+        if plan.get("reading_type") == "plan":
+            from .plan_materialization import materialize_plan_reading, PlanMaterializationError
+            image_path = self.run_directory / "images" / record["image"]
+            with Image.open(image_path) as image:
+                image_size = image.size
+            try:
+                plan, materialization = materialize_plan_reading(plan, elevations=elevation_readings or {},
+                    image_size=image_size, image_name=record["image"])
+            except PlanMaterializationError as error:
+                return envelope({"status": "assembly_conflict", "source_geometry_ready": False,
+                    "reason": str(error), "materialization": error.decisions}, error=True)
+            # Include accepted elevation identity in _once so new evidence cannot
+            # accidentally reuse a previous floor build at the same levels.
+            levels = {**levels, "materialization": materialization}
         reference = {"task_id": task_id, "sha256": sha256}
         if citations:
             reference["levels"] = citations
         result = await self._once(self._build_identity(task_id, levels), "build_plan_bim",
             {"image": record["image"], "plan_json": json.dumps(plan, ensure_ascii=False)},
             reference=reference)
+        if materialization:
+            result = copy.deepcopy(result)
+            result.setdefault("structuredContent", {})["materialization"] = materialization
         meta = result.get("structuredContent") or {}
         if meta.get("source_geometry_ready") and meta.get("candidate"):
             self.assembly.bind(task_id)

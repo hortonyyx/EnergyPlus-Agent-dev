@@ -47,6 +47,26 @@ _GRID_OPTIONS = {
 }
 
 
+def initial_coordinate_view(raw_image, *, image_name, directory):
+    """One full-frame original-pixel grid in the first request, with saved lineage."""
+    from scripts.tool_scripts.run_bim_agent import coordinate_grid_view
+    with Image.open(io.BytesIO(raw_image)) as original:
+        original = original.convert("RGB")
+    picture, grid = coordinate_grid_view(original.copy(), [0, 0, *original.size])
+    buffer = io.BytesIO()
+    picture.save(buffer, "PNG")
+    png = buffer.getvalue()
+    metadata = {"name": image_name, "image_sha256": hashlib.sha256(raw_image).hexdigest(),
+                "original_size": list(original.size), "coordinate_grid": grid,
+                "box_original_pixels": [0, 0, *original.size], "returned_size": list(picture.size),
+                "original_pixels_per_returned_pixel": [1, 1],
+                "coordinate_note": "Read the printed ORIGINAL pixel grid. Display/image-token resizing never changes these labels.",
+                "render_profile": "reader_initial_coordinate_view_v1",
+                "returned_png_sha256": hashlib.sha256(png).hexdigest()}
+    saved = _save_view_record(Path(directory), metadata, png)
+    return png, saved
+
+
 def plan_block_boxes(width: int, height: int) -> list[dict[str, Any]]:
     """Return a complete, slightly overlapping 4/6/8-block partition."""
 

@@ -23,6 +23,7 @@ from src.agent.geometry.lite_bim_regularization import DEFAULT_LITE_GRID_M, regu
 from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
 from .plan_format import audit_plan_replacement, declaration_editability, format_failure, plan_format_errors
 from .plan_review import loose_partition_ends, revise_operations, topology_issues, unhosted_openings
+from .plan_reading import geometry_ready, product_identity
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -579,8 +580,9 @@ class PlanTrial:
                 candidate = receipt.get("candidate")
                 if not isinstance(candidate, str):
                     raise ValueError("successful trial receipt has no candidate")
-                source = _inside(self.workspace or self.receipt_directory, f"{candidate}/source_model.json")
-                if not source.is_file() or _file_sha256(source) != receipt.get("candidate_source_sha256"):
+                product_file, product_sha = product_identity(receipt)
+                source = _inside(self.workspace or self.receipt_directory, product_file)
+                if not source.is_file() or _file_sha256(source) != product_sha:
                     raise ValueError(f"successful trial candidate changed: {candidate!r}")
             for image in receipt.get("returned_images", []):
                 image_path = _inside(self.workspace or self.receipt_directory, image["file"])
@@ -593,7 +595,7 @@ class PlanTrial:
 
     def _successful(self, plan_hash=None):
         return next((row for row in reversed(self.receipts)
-                     if row.get("status") == "passed" and row.get("source_geometry_ready") is True
+                     if row.get("status") == "passed" and geometry_ready(row)
                      and (plan_hash is None or row.get("plan_sha256") == plan_hash)), None)
 
     def _numeric_plan(self, plan: Mapping[str, Any], number: int) -> tuple[
@@ -955,17 +957,20 @@ class PlanTrial:
 
     def verified_unsubmitted_draft(self, expected_image_sha256: str, *, receipt_file: str,
                                   plan_sha256: str, compiled_numeric_plan_sha256: str,
-                                  candidate: str, candidate_source_sha256: str,
+                                  candidate: str, candidate_source_sha256: str | None = None,
+                                  reading_product_file: str | None = None, reading_product_sha256: str | None = None,
                                   expected_receipt_sha256: str | None = None):
         """Verify one event-bound passed draft without treating it as a submission."""
         identities = {"receipt_file": receipt_file, "plan_sha256": plan_sha256,
                       "compiled_numeric_plan_sha256": compiled_numeric_plan_sha256,
-                      "candidate": candidate, "candidate_source_sha256": candidate_source_sha256}
+                      "candidate": candidate}
+        identities.update({"reading_product_file": reading_product_file, "reading_product_sha256": reading_product_sha256}
+                          if reading_product_file else {"candidate_source_sha256": candidate_source_sha256})
         if any(not isinstance(value, str) or not value for value in identities.values()):
             raise ValueError("known passed trial event requires complete product identities")
         receipt = next((row for row in self.receipts
                         if row.get("receipt_file") == receipt_file and row.get("plan_sha256") == plan_sha256), None)
-        if receipt is None or receipt.get("status") != "passed" or receipt.get("source_geometry_ready") is not True:
+        if receipt is None or receipt.get("status") != "passed" or not geometry_ready(receipt):
             raise ValueError("known passed trial event does not match a saved successful receipt")
         if any(receipt.get(key) != value for key, value in identities.items()):
             raise ValueError("known passed trial products differ from the event result")
@@ -1188,10 +1193,17 @@ class PlanTrial:
                 )
             self.receipts.append(receipt)
             return receipt
-        raw = await self.tools.call_tool(
-            "build_plan_bim",
-            {"image": self.image_name, "plan_json": _canonical_plan_bytes(numeric_plan).decode("utf-8")},
-        )
+        if numeric_plan.get("reading_type") == "plan":
+            from .plan_reading import build_reading
+            try:
+                raw = build_reading(numeric_plan, workspace=self.workspace, image_name=self.image_name, number=number)
+            except (ValueError, TypeError, KeyError) as error:
+                raw = {"structuredContent": {"source_geometry_ready": False, "error": str(error)}, "content": []}
+        else:
+            raw = await self.tools.call_tool(
+                "build_plan_bim",
+                {"image": self.image_name, "plan_json": _canonical_plan_bytes(numeric_plan).decode("utf-8")},
+            )
         try:
             result = _payload(raw)
             if self.workspace is not None and result.get("details_file"):
@@ -1199,7 +1211,7 @@ class PlanTrial:
                 result = full_result_metadata(raw, self.workspace)
         except ValueError as error:
             result = {"source_geometry_ready": False, "error": str(error)}
-        ready = result.get("source_geometry_ready") is True
+        ready = geometry_ready(result)
         plan_input = result.get("plan_input") if isinstance(result.get("plan_input"), Mapping) else {}
         compiled_numeric_plan = None
         compiled_numeric_path = None
@@ -1231,7 +1243,9 @@ class PlanTrial:
             "plan_sha256": plan_hash,
             "original_plan_sha256": plan_hash,
             "image": self.image_name,
-            "source_geometry_ready": ready,
+            "source_geometry_ready": ready and result.get("reading_geometry_ready") is not True,
+            **({key: result[key] for key in ("reading_geometry_ready", "reading_product_file", "reading_product_sha256")}
+               if result.get("reading_geometry_ready") else {}),
             "candidate": result.get("candidate"),
             "draft": plan_input.get("plan_file"),
             "compiled_plan_sha256": plan_input.get("plan_sha256"),
@@ -1284,11 +1298,16 @@ class PlanTrial:
                         f"expected {compiled_numeric_sha256}, got {receipt['compiled_plan_sha256']}"),
             )
         if ready and self.workspace is not None and isinstance(result.get("candidate"), str):
-            source = _inside(self.workspace, f"{result['candidate']}/source_model.json")
+            product_file, product_sha = product_identity(result)
+            source = _inside(self.workspace, product_file)
             if not source.is_file():
                 ready = False
                 receipt.update(status="failed", source_geometry_ready=False,
                                reason="trial claimed success but source_model.json is missing")
+            elif result.get("reading_geometry_ready"):
+                if _file_sha256(source) != product_sha:
+                    ready = False
+                    receipt.update(status="failed", reading_geometry_ready=False, reason="reading product hash mismatch")
             else:
                 receipt["candidate_source_sha256"] = _file_sha256(source)
         if not ready:
@@ -1331,6 +1350,9 @@ class PlanTrial:
                             f"{row.get('code')} {'/'.join(row.get('opening_ids') or [])} on {row.get('boundary_id')}"
                             for row in findings[:5])
         receipt["phase"] = "operations" if ready or previous_plan is not None else "draft"
+        if "reading_geometry_ready" in receipt:
+            receipt["reading_geometry_ready"] = ready
+            receipt["corridor_review"] = {"status": "reader_review_required", "hint": CORRIDOR_REVIEW_HINT}
         from .coordinates import plan_orientation
         effective_plan = compiled_numeric_plan or numeric_plan
         try:
@@ -1392,8 +1414,9 @@ class PlanTrial:
             saved = _inside(self.workspace, receipt["receipt_file"])
             if json.loads(saved.read_bytes()) != receipt:
                 raise ValueError("trial receipt changed since validation")
-            source = _inside(self.workspace, f"{receipt['candidate']}/source_model.json")
-            if not source.is_file() or _file_sha256(source) != receipt["candidate_source_sha256"]:
+            product_file, product_sha = product_identity(receipt)
+            source = _inside(self.workspace, product_file)
+            if not source.is_file() or _file_sha256(source) != product_sha:
                 raise ValueError("successful trial source hash mismatch")
             manifest = json.loads((self.workspace / "inputs.json").read_bytes())
             if _file_sha256(self.workspace / "images" / self.image_name) != manifest["images"][self.image_name]["sha256"]:
@@ -1439,6 +1462,7 @@ class PlanTrial:
                 "status": receipt.get("status"),
                 "candidate": receipt.get("candidate"),
                 "candidate_source_sha256": receipt.get("candidate_source_sha256"),
+                "reading_product_sha256": receipt.get("reading_product_sha256"),
                 "compiled_plan_sha256": receipt.get("compiled_plan_sha256"),
                 "aligned_numeric_input_sha256": receipt.get("aligned_numeric_input_sha256"),
                 "compiled_numeric_plan_sha256": receipt.get("compiled_numeric_plan_sha256"),
@@ -1481,7 +1505,7 @@ class PlanTrial:
                         paths.append(path)
             candidate = receipt.get("candidate")
             if isinstance(candidate, str):
-                for name in ("source_model.json", "precision_report.json"):
+                for name in ("source_model.json", "reading.json", "precision_report.json"):
                     path = _inside(self.workspace, f"{candidate}/{name}")
                     if path.is_file():
                         paths.append(path)
@@ -1565,32 +1589,27 @@ class PlanTrialSession:
             )
 
     async def __aenter__(self) -> PlanTrial:
-        from src.agent.runtime_tools import FrozenBimTools, coordinator_role, frozen_bim_client
-        from src.harness_contracts.budget import BudgetAmounts
-
         self._prepare()
-        self._client_context = frozen_bim_client(
-            self.workspace, readonly=False, repository_root=self.root
-        )
-        self._client = await self._client_context.__aenter__()
-        try:
-            tools = FrozenBimTools(
-                self._client,
-                coordinator_role(BudgetAmounts(calls=64)),
-                run_directory=self.workspace,
-            )
-            self.trial = PlanTrial(
-                tools,
-                image_name=self.image_name,
-                receipt_directory=self.workspace / "trial_receipts",
-                workspace=self.workspace,
-                profile_directory=self.reader_run / "pixel_profiles",
-                grid_step_m=self.grid_step_m,
-            )
-            return self.trial
-        except Exception:
-            await self._client_context.__aexit__(*sys.exc_info())
-            raise
+        self.trial = PlanTrial(
+            self, image_name=self.image_name,
+            receipt_directory=self.workspace / "trial_receipts", workspace=self.workspace,
+            profile_directory=self.reader_run / "pixel_profiles", grid_step_m=self.grid_step_m)
+        return self.trial
+
+    async def call_tool(self, name, arguments):
+        # The current 2D reader never needs a second writable BIM server.
+        # Open the legacy preview adapter only if a recorded 3D draft uses it.
+        if self._client is None:
+            from src.agent.runtime_tools import FrozenBimTools, coordinator_role, frozen_bim_client
+            from src.harness_contracts.budget import BudgetAmounts
+            self._client_context = frozen_bim_client(self.workspace, readonly=False, repository_root=self.root)
+            self._client = await self._client_context.__aenter__()
+            self._legacy_tools = FrozenBimTools(self._client, coordinator_role(BudgetAmounts(calls=64)),
+                                               run_directory=self.workspace)
+        return await self._legacy_tools.call_tool(name, arguments)
+
+    def image_origins(self, raw):
+        return self._legacy_tools.image_origins(raw) if self._client is not None else {}
 
     async def __aexit__(self, exc_type, exc, traceback):
         if self._client_context is not None:

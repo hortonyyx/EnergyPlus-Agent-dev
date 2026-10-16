@@ -15,7 +15,7 @@ from src.agent.correction.schema import RoomRoleEvidence, Window, WallOpening
 
 
 _PROPOSAL_FIELDS = {"geometry", "assumptions", "unresolved", "enclosure_declaration",
-                    "wall_references", "wall_dimensions", "mesh_frame", "component_attributes"}
+                    "wall_references", "wall_dimensions", "mesh_frame", "component_attributes", "wall_readings"}
 _WINDOW_FIELDS = {"facade", "span", "z", "room", "floor", "assumptions"}
 _OPENING_FIELDS = {"space_id", "other_space_id", "p1", "p2", "z", "state", "assumptions"}
 _FACADE_REFLECTIONS = {

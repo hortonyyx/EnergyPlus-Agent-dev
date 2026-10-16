@@ -19,7 +19,7 @@ from src.agent.geometry.source_naming import public_names_for_display, public_re
 
 
 _PROPOSAL_FIELDS = {"geometry", "assumptions", "unresolved", "enclosure_declaration",
-                    "wall_references", "wall_dimensions", "mesh_frame", "component_attributes"}
+                    "wall_references", "wall_dimensions", "mesh_frame", "component_attributes", "wall_readings"}
 
 
 def _json_bytes(value: object, *, indent: int | None = None) -> bytes:
@@ -165,12 +165,23 @@ def export_source_proposal(proposal: dict, out_dir: Path, *, provenance: dict | 
             capability_profile="orthogonal_polygon",
             enclosure_declaration=enclosure,
         )
+        if "wall_readings" in proposal:
+            from src.agent.geometry.reader_wall_metadata import bind_wall_readings
+            source.update(bind_wall_readings(source, proposal["wall_readings"]))
         if "component_attributes" in proposal:
             from src.agent.geometry.component_attributes import validate_component_attributes
-            source["component_attributes"] = validate_component_attributes(source, proposal["component_attributes"])
+            explicit = validate_component_attributes(source, proposal["component_attributes"])
+            replaced = {bid for row in explicit for bid in row["boundary_ids"]}
+            source["component_attributes"] = [row for row in source.get("component_attributes", [])
+                                              if not replaced.intersection(row["boundary_ids"])] + explicit
         if "wall_references" in proposal or "wall_dimensions" in proposal:
             from src.agent.geometry.wall_reference import resolve_wall_references, convert_wall_dimensions
             walls = resolve_wall_references(source, proposal.get("wall_references", []))
+            replaced = {bid for row in walls for bid in row["boundary_ids"]}
+            walls = [row for row in source.get("wall_references", [])
+                     if not replaced.intersection(row["boundary_ids"])] + walls
+            if len({row["id"] for row in walls}) != len(walls):
+                raise ValueError("duplicate wall reference id across reading and explicit evidence")
             source["wall_references"] = walls
             source["wall_dimension_report"] = convert_wall_dimensions(walls, proposal.get("wall_dimensions", []))
             report["wall_dimension_report"] = source["wall_dimension_report"]

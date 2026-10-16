@@ -230,13 +230,16 @@ async def assemble_from_readers(session, *, task_ids=None, level_overrides=()):
     if current and current["status"] == "needs_review":
         return finish(current["candidate"], review=current, status="assembly_review_required")
 
+    if any(row[field]["value_m"] is None for row in resolutions.values() for field in ("z_floor", "ceiling_height")):
+        return finish(None, status="needs_levels")
     if not state.get("local_revision"):
         builds = []
         for floor in resolutions:
             task_id, _ = plans[floor]
             ref = session.registry.records[task_id]["artifact"]
-            result = await session._build_from_artifact(task_id, ref["sha256"], resolved_levels=resolutions[floor])
+            result = await session._build_from_artifact(task_id, ref["sha256"], resolved_levels=resolutions[floor], elevation_readings=elevations)
             meta = metadata(result)
+            notes.extend({"task_id": task_id, "assembly_materialization": row} for row in meta.get("materialization", []))
             if not meta.get("source_geometry_ready") or not meta.get("candidate"):
                 issues.append(decision("build_failed", "The selected floor could not compile safely.",
                     "Inspect the saved draft/error and re-dispatch this plan reader with the specific defect.",

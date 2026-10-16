@@ -9,6 +9,7 @@ import math
 from src.agent_runtime.store import json_bytes
 
 from .lineage import candidate_readers, current_plan_deliveries
+from .plan_reading import product_identity, comparison_facts
 
 
 def _identity(value, floor):
@@ -407,13 +408,27 @@ class AssemblyReview:
     def bind(self, task_id):
         value = self.session.registry.read(task_id, role_id="plan_reader")
         record = self.session.registry.records[task_id]
-        if not record.get("validation", {}).get("candidate_source_sha256"):
-            raise ValueError("reader trial is missing its source hash")
+        _, digest = product_identity(record.get("validation", {}))
+        if not digest:
+            raise ValueError("reader trial is missing its validated product hash")
         floors = self._load("role_floor_sources.json", {})
         floors[value["plan"]["floor_id"]] = {"task_id": task_id,
             "artifact_sha256": record["artifact"]["sha256"],
-            "source_sha256": record["validation"]["candidate_source_sha256"]}
+            "source_sha256": digest}
         self.store.write_json("role_floor_sources.json", floors)
+
+    def trial_facts(self, task_id, binding):
+        receipt = self.session.registry.records[task_id]["validation"]
+        workspace = self.session.registry.child(task_id).task_directory / "bim/trial_workspace"
+        filename, digest = product_identity(receipt)
+        path = (workspace / filename).resolve()
+        if not path.is_relative_to(workspace.resolve()) or not path.is_file():
+            raise ValueError("accepted trial product is missing or outside its task")
+        raw = path.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != digest or digest != binding["source_sha256"]:
+            raise ValueError("accepted trial source hash changed")
+        product = json.loads(raw)
+        return comparison_facts(product) if receipt.get("reading_product_file") else product
 
     @staticmethod
     def _identified(row, field="change_id"):
@@ -549,15 +564,7 @@ class AssemblyReview:
                 continue
             task_id = binding["task_id"]
             self.session.registry.read(task_id, sha256=binding["artifact_sha256"], role_id="plan_reader")
-            receipt = self.session.registry.records[task_id]["validation"]
-            workspace = self.session.registry.child(task_id).task_directory / "bim/trial_workspace"
-            path = (workspace / receipt["candidate"] / "source_model.json").resolve()
-            if not path.is_relative_to(workspace.resolve()) or not path.is_file():
-                raise ValueError("accepted trial source is missing or outside its task")
-            raw = path.read_bytes()
-            if hashlib.sha256(raw).hexdigest() != binding["source_sha256"]:
-                raise ValueError("accepted trial source hash changed")
-            floor_changes = compare_floor(json.loads(raw), source, floor)
+            floor_changes = compare_floor(self.trial_facts(task_id, binding), source, floor)
             accepted, floor_changes = accepted_regularization_changes(floor_changes, regularization, floor)
             regularization_changes.extend(accepted)
             changes.extend(floor_changes)
@@ -700,12 +707,8 @@ class PositionReview:
         task = binding["task_id"]
         artifact = self.session.registry.read(task, sha256=binding["artifact_sha256"], role_id="plan_reader")
         receipt = self.session.registry.records[task]["validation"]
-        workspace = self.session.registry.child(task).task_directory / "bim/trial_workspace"
-        path = (workspace / receipt["candidate"] / "source_model.json").resolve()
-        if not path.is_relative_to(workspace.resolve()) or hashlib.sha256(path.read_bytes()).hexdigest() != binding["source_sha256"]:
-            raise ValueError("position review plan trial source changed")
         seed_id = identity.removeprefix(floor + ":")
-        source = json.loads(path.read_bytes())
+        source = self.session.assembly.trial_facts(task, binding)
         opening = next((row for row in source["openings"] if row["id"] in {identity, seed_id}), None)
         evidence = [row for row in artifact.get("evidence", []) if row.get("item") == "plan.openings:" + seed_id]
         located = next((row for row in evidence if row.get("bbox")), {})

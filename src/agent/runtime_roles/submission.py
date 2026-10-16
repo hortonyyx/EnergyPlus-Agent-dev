@@ -238,10 +238,11 @@ class ReaderSubmission:
         if hashlib.sha256(_bytes(value["artifact"])).hexdigest() != value["artifact_sha256"]:
             raise ValueError("reader submission artifact hash mismatch")
         if self.trial is not None:
+            from .plan_reading import product_identity
             plan, receipt = self.trial.verified_plan(value["validation"]["plan_sha256"])
             compiled_plan = self.trial.numeric_plan(receipt)
             if (compiled_plan != value["artifact"]["plan"]
-                    or receipt["candidate_source_sha256"] != value["validation"]["candidate_source_sha256"]):
+                    or product_identity(receipt) != product_identity(value["validation"])):
                 raise ValueError("reader submission does not match its immutable successful trial")
         review = value["validation"].get("local_review")
         if review is not None:
@@ -287,7 +288,7 @@ class ReaderSubmission:
         if self.role_id == "plan_reader":
             from .coordinates import validate_north_arrow
             passed = [(index, row) for index, row in enumerate(self.trial.receipts, 1)
-                      if row.get("status") == "passed" and row.get("source_geometry_ready") is not False]
+                      if row.get("status") == "passed" and row.get("reading_geometry_ready", row.get("source_geometry_ready")) is not False]
             if not passed:
                 raise ValueError("submission requires a successful isolated trial in this task")
             index, latest = passed[-1]

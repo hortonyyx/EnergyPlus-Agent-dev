@@ -39,6 +39,7 @@ IMPLEMENTATION_FILES = (
     'src/agent/execution/bim_claim_state.py',
     'src/agent/execution/bim_height_coverage.py',
     'src/agent/geometry/component_attributes.py',
+    'src/agent/geometry/reader_wall_metadata.py',
     'scripts/tool_scripts/bim_agent_mesh.py',
     'scripts/tool_scripts/bim_agent_inference.py',
     'src/agent/geometry/mesh_observation.py',

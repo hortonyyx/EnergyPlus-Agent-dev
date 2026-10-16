@@ -30,8 +30,9 @@ def _refs(value):
 def resolve_wall_references(source: dict, records: list[dict]) -> list[dict]:
     """Bind optional local evidence to actual source walls and congruent sides.
 
-    Partial contacts and explicit enclosure declarations are left unsupported
-    in this first adapter. Missing offsets remain unknown even with total width.
+    Component scope requires congruent sides; explicit boundary scope never
+    propagates evidence across partial contacts. Explicit enclosure declarations
+    remain unsupported. Missing offsets stay unknown even with total width.
     """
     if not isinstance(records, list):
         raise ValueError("wall_references must be a list")
@@ -41,7 +42,7 @@ def resolve_wall_references(source: dict, records: list[dict]) -> list[dict]:
     spaces = {s["id"]: s for s in source["spaces"]}
     seen, used, result = set(), set(), []
     allowed = {"id", "boundary_id", "offsets_m", "thickness_m", "reference_basis",
-               "thickness_scope", "evidence_status", "source_refs"}
+               "thickness_scope", "evidence_status", "source_refs", "host_scope", "reference_side"}
     for record in records:
         if not isinstance(record, dict) or set(record) - allowed:
             raise ValueError("unknown wall reference fields")
@@ -61,7 +62,13 @@ def resolve_wall_references(source: dict, records: list[dict]) -> list[dict]:
         endpoints = sorted({tuple(p[:2]) for p in vertices})
         if len(endpoints) != 2:
             raise ValueError("wall reference requires a straight rectangular wall")
-        ids = [boundary["id"], *boundary.get("counterpart_ids", [])]
+        scope = row.get("host_scope", "component")
+        if scope not in {"component", "boundary"}:
+            raise ValueError("wall reference host_scope must be component or boundary")
+        if "reference_side" in row and row["reference_side"] not in {
+                "centerline", "negative_face", "positive_face", "unknown"}:
+            raise ValueError("reference_side must use the fixed world normal or be unknown")
+        ids = [boundary["id"]] if scope == "boundary" else [boundary["id"], *boundary.get("counterpart_ids", [])]
         for bid in ids:
             other = boundaries[bid]
             if {tuple(p) for p in other["vertices"]} != {tuple(p) for p in vertices}:

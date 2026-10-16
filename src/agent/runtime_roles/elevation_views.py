@@ -24,11 +24,17 @@ def _check_image_coordinates(artifact, size):
             raise ValueError(f"{axis} pixel anchors exceed original image {size}")
     for row in artifact["elevations"] + artifact["openings"]:
         box(row["bbox"], size)
+    for row in artifact["elevations"]:
+        if row.get("line_y_px") is not None and not 0 <= row["line_y_px"] <= size[1]:
+            raise ValueError(f"level {row['id']} line_y_px exceeds original image {size}")
     for row in artifact["openings"]:
         if not 0 <= row["x_px"][0] < row["x_px"][1] <= size[0]:
             raise ValueError(f"opening {row['id']} x_px exceeds original image {size}")
         if row.get("opening_bbox") is not None:
             box(row["opening_bbox"], size)
+    for point in artifact.get("facade_outline", {}).get("points_px", []):
+        if not (0 <= point[0] <= size[0] and 0 <= point[1] <= size[1]):
+            raise ValueError(f"facade_outline point {point} exceeds original image {size}")
 
 
 def _adopted_geometry(artifact, size):
@@ -61,7 +67,7 @@ def _adopted_geometry(artifact, size):
         y = _pixel(zcal, row["value_m"])
         if not math.isfinite(y):
             raise ValueError(f"level {row['id']} cannot be projected to finite pixels")
-        levels.append({**{key: row[key] for key in ("id", "floor_id", "kind", "value_m", "evidence_type") if key in row},
+        levels.append({**{key: row[key] for key in ("id", "floor_id", "kind", "value_m", "evidence_type", "line_y_px") if key in row},
             "overlay_y_px": y})
         if not 0 <= y <= size[1]:
             issues.append({"type": "adopted_projection_outside_image", "level_id": row["id"],
@@ -77,6 +83,12 @@ def _overlay(original, artifact, openings, levels):
     draw = ImageDraw.Draw(picture)
     width = max(1, round(min(picture.size) / 400))
     xcal = artifact["x_calibration"]
+    outline = artifact.get("facade_outline")
+    if outline:
+        points = [tuple(point) for point in outline["points_px"]]
+        if outline["closed"] and points[-1] != points[0]:
+            points.append(points[0])
+        draw.line(points, fill=(70, 95, 80), width=width + 1)
     for level in levels:
         y = level["overlay_y_px"]
         draw.line([(xcal["pixel_start"], y), (xcal["pixel_end"], y)], fill=(190, 70, 180), width=width)
@@ -92,9 +104,23 @@ def _overlay(original, artifact, openings, levels):
 
 
 def reading_views(original, artifact):
+    _check_image_coordinates(artifact, original.size)
     openings, levels, issues = _adopted_geometry(artifact, original.size)
     overlay = _overlay(original, artifact, openings, levels)
     diagram = _overlay(Image.new("RGB", original.size, "white"), artifact, openings, levels)
     ImageDraw.Draw(diagram).text((10, 10),
         f"{artifact['orientation']} - adopted opening and level readings (absolute Z, metres)", fill="black")
-    return diagram, overlay, {"openings": openings, "levels": levels, "issues": issues}
+    outline = artifact.get("facade_outline")
+    coverage = {"facade_outline": ("closed_perimeter" if outline["closed"] else "open_chain")
+                if outline else "not_provided", "openings": "read", "levels": "read",
+                "facade_outline_evidence_type": outline["evidence_type"] if outline else None,
+                "located_level_line_ids": [row["id"] for row in artifact["elevations"]
+                                           if row.get("line_y_px") is not None]}
+    ImageDraw.Draw(diagram).text((10, 26), "Facade outline: " + coverage["facade_outline"], fill="black")
+    observed_outline = None
+    if outline:
+        observed_outline = {**outline, "world_xz_points_m": [
+            [_world(artifact["x_calibration"], x), _world(artifact["z_calibration"], y)]
+            for x, y in outline["points_px"]]}
+    return diagram, overlay, {"openings": openings, "levels": levels, "issues": issues,
+                             "facade_outline": observed_outline, "coverage": coverage}

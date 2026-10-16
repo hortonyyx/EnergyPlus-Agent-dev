@@ -25,15 +25,26 @@ _PLAN_FIELDS = frozenset({
     "floor_id", "z_floor", "ceiling_height", "x_anchors", "y_anchors",
     "basis", "footprint_pixels", "partitions", "openings", "space_seeds",
     "assumptions", "unresolved", "regularization_inputs", "regularization",
+    "reading_type", "wall_metadata",
 })
 _REQUIRED_PLAN_FIELDS = _PLAN_FIELDS - {
-    "space_seeds", "regularization_inputs", "regularization",
+    "space_seeds", "regularization_inputs", "regularization", "reading_type", "wall_metadata",
 }
+_REQUIRED_PLAN_READING_FIELDS = _REQUIRED_PLAN_FIELDS - {"z_floor", "ceiling_height"}
 _PARTITION_FIELDS = frozenset({"id", "points", "source_refs"})
 _OPENING_FIELDS = frozenset({
     "id", "kind", "p1", "p2", "z", "source_refs", "state", "assumptions",
 })
 _SEED_FIELDS = frozenset({"id", "point", "role", "source_refs", "role_evidence"})
+
+
+def _required_opening_fields(plan: dict) -> frozenset[str]:
+    required = frozenset({"id", "kind", "p1", "p2", "source_refs"})
+    return required - {"source_refs"} if plan.get("reading_type") == "plan" else required | {"z"}
+
+
+def _required_partition_fields(plan: dict) -> frozenset[str]:
+    return _PARTITION_FIELDS - {"source_refs"} if plan.get("reading_type") == "plan" else _PARTITION_FIELDS
 
 
 class OpeningHostError(ValueError):
@@ -209,7 +220,12 @@ def compile_plan_partition(
     image_name: str,
     include_audit_metadata: bool = True,
 ) -> tuple[dict, dict]:
-    """Return an executable geometry-v2 proposal and pixel/world mapping metadata.
+    """Return compiled plan geometry and pixel/world mapping metadata.
+
+    ``reading_type='plan'`` marks a 2D reading, where floor and opening heights
+    may be absent. Known heights are still validated, and absent heights stay
+    absent in the result. Unmarked legacy plans must supply all heights and
+    continue to produce an executable geometry-v2 proposal.
 
     Input linework must already meet exactly.  Exact orthogonal intersections
     are deterministically noded by ``unary_union``; coordinates are never
@@ -229,9 +245,13 @@ def compile_plan_partition(
         plan = {key: value for key, value in plan.items()
                 if key not in {"regularization", "regularization_inputs"}}
     plan, field_aliases = normalize_plan_fields(plan)
+    reading_2d = isinstance(plan, dict) and plan.get("reading_type") == "plan"
     plan = _fields(
-        plan, path="plan", allowed=_PLAN_FIELDS, required=_REQUIRED_PLAN_FIELDS,
+        plan, path="plan", allowed=_PLAN_FIELDS,
+        required=_REQUIRED_PLAN_READING_FIELDS if reading_2d else _REQUIRED_PLAN_FIELDS,
     )
+    if "reading_type" in plan and not reading_2d:
+        raise ValueError("plan.reading_type must be 'plan' when supplied")
     if (not isinstance(image_size, tuple) or len(image_size) != 2
             or any(isinstance(value, bool) or not isinstance(value, int) or value <= 0
                    for value in image_size)):
@@ -240,9 +260,10 @@ def compile_plan_partition(
     image_name = _text(image_name, path="image_name")
     floor_id = _text(plan["floor_id"], path="plan.floor_id")
     basis = _text(plan["basis"], path="plan.basis")
-    z_floor = _number(plan["z_floor"], path="plan.z_floor")
-    ceiling_height = _number(plan["ceiling_height"], path="plan.ceiling_height")
-    if ceiling_height <= 0:
+    z_floor = _number(plan["z_floor"], path="plan.z_floor") if "z_floor" in plan else None
+    ceiling_height = (_number(plan["ceiling_height"], path="plan.ceiling_height")
+                      if "ceiling_height" in plan else None)
+    if ceiling_height is not None and ceiling_height <= 0:
         raise ValueError("plan.ceiling_height must be positive")
     assumptions = _strings(plan["assumptions"], path="plan.assumptions")
     unresolved = _strings(plan["unresolved"], path="plan.unresolved")
@@ -285,7 +306,7 @@ def compile_plan_partition(
     for index, raw in enumerate(raw_partitions):
         item = _fields(
             raw, path=f"plan.partitions[{index}]", allowed=_PARTITION_FIELDS,
-            required=_PARTITION_FIELDS,
+            required=_required_partition_fields(plan),
         )
         partition_id = _text(item["id"], path=f"plan.partitions[{index}].id")
         if partition_id in partition_ids:
@@ -318,7 +339,8 @@ def compile_plan_partition(
             "points": points,
             "line": line,
             "source_refs": _strings(
-                item["source_refs"], path=f"partition {partition_id}.source_refs", require_one=True,
+                item.get("source_refs", [f"image:{image_name}#{partition_id}"]),
+                path=f"partition {partition_id}.source_refs", require_one=True,
             ),
         })
 
@@ -462,7 +484,7 @@ def compile_plan_partition(
     for index, raw in enumerate(raw_openings):
         item = _fields(
             raw, path=f"plan.openings[{index}]", allowed=_OPENING_FIELDS,
-            required=frozenset({"id", "kind", "p1", "p2", "z", "source_refs"}),
+            required=_required_opening_fields(plan),
         )
         opening_id = _text(item["id"], path=f"plan.openings[{index}].id")
         if opening_id in opening_ids:
@@ -491,18 +513,25 @@ def compile_plan_partition(
                 "or partial host cannot be treated as outdoors",
                 opening_id=opening_id, p1_pixel=p1_pixel, p2_pixel=p2_pixel,
             )
-        z = item["z"]
-        if not isinstance(z, list) or len(z) != 2:
-            raise ValueError(f"opening {opening_id}.z must be [absolute_bottom_m, absolute_top_m]")
-        z_values = [_number(value, path=f"opening {opening_id}.z[{z_index}]") for z_index, value in enumerate(z)]
-        if not z_values[0] < z_values[1]:
-            raise ValueError(f"opening {opening_id}.z must have positive height")
-        if z_values[0] < z_floor or z_values[1] > z_floor + ceiling_height:
-            raise ValueError(
-                f"opening {opening_id}.z {z_values} is outside floor vertical bounds "
-                f"[{z_floor}, {z_floor + ceiling_height}]"
-            )
-        refs = _strings(item["source_refs"], path=f"opening {opening_id}.source_refs", require_one=True)
+        z_values = None
+        if "z" in item:
+            z = item["z"]
+            if not isinstance(z, list) or len(z) != 2:
+                raise ValueError(f"opening {opening_id}.z must be [absolute_bottom_m, absolute_top_m]")
+            z_values = [_number(value, path=f"opening {opening_id}.z[{z_index}]")
+                        for z_index, value in enumerate(z)]
+            if not z_values[0] < z_values[1]:
+                raise ValueError(f"opening {opening_id}.z must have positive height")
+            z_top = (z_floor + ceiling_height
+                     if z_floor is not None and ceiling_height is not None else None)
+            if ((z_floor is not None and z_values[0] < z_floor)
+                    or (z_top is not None and z_values[1] > z_top)):
+                raise ValueError(
+                    f"opening {opening_id}.z {z_values} is outside floor vertical bounds "
+                    f"[{z_floor}, {z_top if z_top is not None else 'unknown'}]"
+                )
+        refs = _strings(item.get("source_refs", [f"image:{image_name}#{opening_id}"]),
+                        path=f"opening {opening_id}.source_refs", require_one=True)
         opening_assumptions = _strings(
             item.get("assumptions", []), path=f"opening {opening_id}.assumptions",
         )
@@ -543,30 +572,37 @@ def compile_plan_partition(
             along = [p1_world[0], p2_world[0]] if facade in {"North", "South"} else [p1_world[1], p2_world[1]]
             window = {
                 "id": opening_id, "kind": "window", "floor": floor_id,
-                "facade": facade, "span": sorted(along), "z": z_values,
+                "facade": facade, "span": sorted(along),
                 "room": host_ids[0], "p1": p1_world, "p2": p2_world,
                 "width_m": width_m, "source_refs": refs,
                 "assumptions": opening_assumptions,
             }
+            if z_values is not None:
+                window["z"] = z_values
             windows.append(window)
         else:
             opening = {
                 "id": opening_id, "kind": kind, "space_id": host_ids[0],
                 "other_space_id": None if exterior else host_ids[1],
-                "p1": p1_world, "p2": p2_world, "z": z_values,
+                "p1": p1_world, "p2": p2_world,
                 "source_refs": refs, "assumptions": opening_assumptions,
             }
+            if z_values is not None:
+                opening["z"] = z_values
             if state is not None:
                 opening["state"] = state
             wall_openings.append(opening)
-        opening_hosts.append({
+        host = {
             "opening_id": opening_id, "kind": kind, "space_ids": host_ids,
             "exterior": exterior, "facade": facade,
             "p1_pixel": list(p1_pixel), "p2_pixel": list(p2_pixel),
             "p1_world_m": p1_world, "p2_world_m": p2_world,
-            "width_m": width_m, "z_absolute_m": z_values,
+            "width_m": width_m,
             "source_refs": refs,
-        })
+        }
+        if z_values is not None:
+            host["z_absolute_m"] = z_values
+        opening_hosts.append(host)
 
     world_footprint = Polygon(world_footprint_ring)
     min_x, min_y, max_x, max_y = world_footprint.bounds
@@ -577,10 +613,7 @@ def compile_plan_partition(
             "schema_version": "2",
             "footprint_x": [_rounded(min_x), _rounded(max_x)],
             "footprint_y": [_rounded(min_y), _rounded(max_y)],
-            "floors": [{
-                "name": floor_id, "z_floor": z_floor,
-                "ceiling_height": ceiling_height, "cells": cells,
-            }],
+            "floors": [{"name": floor_id, "cells": cells}],
             "windows": windows,
             "openings": wall_openings,
             "notes": (
@@ -591,6 +624,13 @@ def compile_plan_partition(
         "assumptions": assumptions,
         "unresolved": unresolved,
     }
+    floor = proposal["geometry"]["floors"][0]
+    if z_floor is not None:
+        floor["z_floor"] = z_floor
+    if ceiling_height is not None:
+        floor["ceiling_height"] = ceiling_height
+    if reading_2d:
+        proposal["geometry"]["reading_type"] = "plan"
     if not rectangular_footprint:
         # Same explicit floor ring as the parametric source-proposal adapter.
         # Keep rectangular proposals unchanged for existing replay consumers.
@@ -628,10 +668,14 @@ def compile_plan_partition(
     }
     if field_aliases:
         metadata["field_aliases"] = field_aliases
+    if reading_2d:
+        metadata["reading_type"] = "plan"
     # These records are inert here.  They are persisted for audit/replay; the
     # literal compiler never interprets them as permission to snap geometry.
     if "regularization_inputs" in plan:
         metadata["regularization_inputs"] = copy.deepcopy(plan["regularization_inputs"])
     if "regularization" in plan:
         metadata["regularization"] = copy.deepcopy(plan["regularization"])
+    if "wall_metadata" in plan:
+        metadata["wall_metadata"] = copy.deepcopy(plan["wall_metadata"])
     return proposal, metadata

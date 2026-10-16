@@ -1144,6 +1144,8 @@ class Toolkit:
             with PILImage.open(image_path) as original:
                 proposal, metadata = compile_plan_partition(
                     plan, image_size=original.size, image_name=image)
+            from src.agent.geometry.reader_wall_metadata import wall_reading_input
+            proposal["wall_readings"] = [wall_reading_input(plan, metadata)]
             if regularization_error is not None:
                 raise regularization_error
         except (ValueError, TypeError, KeyError) as error:
@@ -1291,6 +1293,8 @@ class Toolkit:
             plan, image = item["plan"], item["image_name"]
             proposal, compilation = compile_plan_partition(
                 plan, image_size=tuple(item["image_size"]), image_name=image)
+            from src.agent.geometry.reader_wall_metadata import wall_reading_input
+            proposal["wall_readings"] = [wall_reading_input(plan, compilation)]
             items.append(dict(proposal=proposal, floor_id=item["floor_id"], z_floor=item["z_floor"],
                               source_ref=item["source_ref"]))
             binding_row["compilation"] = compilation

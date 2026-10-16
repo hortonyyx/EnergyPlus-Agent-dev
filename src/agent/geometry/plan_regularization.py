@@ -1910,7 +1910,8 @@ def prepare_plan_junctions(plan: dict, *, image_size: tuple[int, int],
     """
     from src.agent.geometry.plan_input import normalize_plan_fields
     from src.agent.geometry.plan_partition import (
-        _OPENING_FIELDS, _PARTITION_FIELDS, _SEED_FIELDS, _fields, _point, _strings, _text,
+        _OPENING_FIELDS, _PARTITION_FIELDS, _SEED_FIELDS, _fields, _point,
+        _required_opening_fields, _required_partition_fields, _strings, _text,
     )
 
     original, _ = normalize_plan_fields(plan)
@@ -1926,18 +1927,25 @@ def prepare_plan_junctions(plan: dict, *, image_size: tuple[int, int],
             raise TypeError(f"plan.{key} must be a list")
     for index, row in enumerate(result["openings"]):
         _fields(row, path=f"plan.openings[{index}]", allowed=_OPENING_FIELDS,
-                required=frozenset({"id", "kind", "p1", "p2", "z", "source_refs"}))
+                required=_required_opening_fields(result))
+        if result.get("reading_type") == "plan" and "source_refs" not in row:
+            identity = _text(row["id"], path=f"plan.openings[{index}].id")
+            row["source_refs"] = [f"image:{image_name}#{identity}"]
+        _strings(row["source_refs"], path=f"opening {row['id']}.source_refs", require_one=True)
     for index, row in enumerate(result.get("space_seeds", [])):
         _fields(row, path=f"plan.space_seeds[{index}]", allowed=_SEED_FIELDS,
                 required=frozenset({"id", "point"}))
     # Validate data which could disappear during deduplication.
     seen = set()
     for index, row in enumerate(result["partitions"]):
-        _fields(row, path=f"plan.partitions[{index}]", allowed=_PARTITION_FIELDS, required=_PARTITION_FIELDS)
+        _fields(row, path=f"plan.partitions[{index}]", allowed=_PARTITION_FIELDS,
+                required=_required_partition_fields(result))
         identity = _text(row["id"], path=f"plan.partitions[{index}].id")
         if identity in seen:
             raise ValueError(f"duplicate partition id {identity!r}")
         seen.add(identity)
+        if result.get("reading_type") == "plan" and "source_refs" not in row:
+            row["source_refs"] = [f"image:{image_name}#{identity}"]
         _strings(row["source_refs"], path=f"partition {identity}.source_refs", require_one=True)
         if not isinstance(row["points"], list) or len(row["points"]) < 2:
             raise ValueError(f"partition {identity}: points must contain at least two points")

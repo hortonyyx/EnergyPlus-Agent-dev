@@ -42,7 +42,7 @@ def resolve_levels(registry, plans, elevations, overrides=()):
         consistent = rows and not missing and max(r["level"]["value_m"] for r in rows) - min(
             r["level"]["value_m"] for r in rows) <= LEVEL_TOLERANCE_M + 1e-9
         value = rows[0]["level"]["value_m"] if consistent else fallback
-        return {"value_m": value, "status": "elevation" if consistent else "plan_assumption",
+        return {"value_m": value, "status": "elevation" if consistent else ("plan_assumption" if fallback is not None else "unresolved"),
                 "rule": rule, "references": rows, "missing_task_ids": missing}
 
     # Explicit floor marks determine stack order where present. Natural floor IDs
@@ -53,7 +53,7 @@ def resolve_levels(registry, plans, elevations, overrides=()):
         natural = tuple((0, int(x)) if x.isdigit() else (1, x.casefold())
                         for x in re.split(r"(\d+)", floor))
         consistent = rows and max(rows) - min(rows) <= LEVEL_TOLERANCE_M + 1e-9
-        return min(rows) if consistent else plans[floor]["z_floor"], natural
+        return min(rows) if consistent else plans[floor].get("z_floor", 0), natural
 
     floors = sorted(plans, key=floor_order)
     resolved = {}
@@ -67,7 +67,7 @@ def resolve_levels(registry, plans, elevations, overrides=()):
                       and r["level"].get("floor_id") in (None, floor)]
             rule = "lowest_floor_ground" if not rows else ("floor_mark_or_ground" if ground else rule)
             rows += ground
-        resolved[floor] = {"z_floor": pick(rows, floor, "z_floor", plans[floor]["z_floor"], rule)}
+        resolved[floor] = {"z_floor": pick(rows, floor, "z_floor", plans[floor].get("z_floor"), rule)}
         override = changes.get(floor, {})
         if "z_floor" in override or "z_floor_evidence" in override:
             _, citations = apply_levels(registry, plans[floor], **{
@@ -92,13 +92,13 @@ def resolve_levels(registry, plans, elevations, overrides=()):
                 if candidates:
                     highest = max(r["level"]["value_m"] for r in candidates)
                     rows.extend(r for r in candidates if r["level"]["value_m"] == highest)
-            top = pick(rows, floor, "ceiling_height", base["value_m"] + plan["ceiling_height"],
+            top = pick(rows, floor, "ceiling_height", (base["value_m"] + plan["ceiling_height"] if base["value_m"] is not None and "ceiling_height" in plan else None),
                        "top_floor_highest_per_facade:eave|roof|other")
-        height = top["value_m"] - base["value_m"]
-        valid = base["status"] != "plan_assumption" and top["status"] != "plan_assumption" and height > 0
+        height = (top["value_m"] - base["value_m"] if top["value_m"] is not None and base["value_m"] is not None else None)
+        valid = base["status"] in {"elevation", "override"} and top["status"] in {"elevation", "override"} and height is not None and height > 0
         resolved[floor]["ceiling_height"] = {
-            "value_m": height if valid else plan["ceiling_height"],
-            "status": "elevation" if valid else "plan_assumption", "rule": top["rule"],
+            "value_m": height if valid else plan.get("ceiling_height"),
+            "status": "elevation" if valid else ("plan_assumption" if "ceiling_height" in plan else "unresolved"), "rule": top["rule"],
             "references": top["references"], "floor_references": base["references"],
             "missing_task_ids": top.get("missing_task_ids", [])}
         override = changes.get(floor, {})
@@ -109,8 +109,8 @@ def resolve_levels(registry, plans, elevations, overrides=()):
             resolved[floor]["ceiling_height"] = {"value_m": ref["value_m"], "status": "override",
                 "rule": "explicit_cited_top_minus_floor", "references": [ref], "floor_references": base["references"]}
         for field, row in resolved[floor].items():
-            if row["status"] == "plan_assumption":
-                issues.append(decision("level_unresolved", "Missing, inconsistent or nonpositive elevation levels; using the plan assumption.",
+            if row["status"] in {"plan_assumption", "unresolved"}:
+                issues.append(decision("level_unresolved", "Missing, inconsistent or nonpositive elevation levels; an explicit value is required when the plan has no observed height.",
                     "Inspect the cited levels; re-dispatch the elevation reader or call assemble_from_readers with a cited level_overrides value.",
                     floor_id=floor, field=field, fallback_m=row["value_m"], references=row["references"],
                     floor_references=row.get("floor_references", []), missing_task_ids=row.get("missing_task_ids", [])))
@@ -119,14 +119,17 @@ def resolve_levels(registry, plans, elevations, overrides=()):
 
 def apply_resolved_levels(plan, resolution):
     updated, _ = resolve_plan_lengths(plan)
-    delta = resolution["z_floor"]["value_m"] - updated["z_floor"]
+    if any(resolution[field]["value_m"] is None for field in ("z_floor", "ceiling_height")):
+        raise ValueError("assembly requires resolved floor base and top; 2D readings contain no fallback heights")
+    delta = resolution["z_floor"]["value_m"] - updated.get("z_floor", resolution["z_floor"]["value_m"])
     for field in ("z_floor", "ceiling_height"):
         updated[field] = resolution[field]["value_m"]
     # Preserve the plan's relative provisional opening heights under a base move.
     # Never clip an opening to fit a shorter storey.
     if delta:
         for row in updated.get("openings", []):
-            row["z"] = [z + delta for z in row["z"]]
+            if "z" in row:
+                row["z"] = [z + delta for z in row["z"]]
     text = "Role level resolution (absolute metres): " + json.dumps(
         resolution, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     updated["basis"] = updated.get("basis", "") + "\n" + text
@@ -156,7 +159,7 @@ def apply_levels(registry, plan, *, z_floor=None, z_floor_evidence=None,
                              "(ceiling_height = cited top Z minus floor Z)")
         if field == "ceiling_height" and value <= 0:
             raise ValueError("ceiling_height must be positive")
-        citations[field] = {**reference, "value_m": value, "previous_value_m": plan[field],
+        citations[field] = {**reference, "value_m": value, "previous_value_m": plan.get(field),
             "artifact_sha256": registry.records[reference["task_id"]]["artifact"]["sha256"],
             "image": artifact["image"], "level": copy.deepcopy(level)}
         updated[field] = value

@@ -63,6 +63,7 @@ _APP_JS = r"""
   const SOURCE_MAP = SOURCE ? (SOURCE.derived || {}) : {};
   const SOURCE_SPACES = Object.fromEntries(((SOURCE && SOURCE.spaces) || []).map(s=>[s.id,s]));
   const SOURCE_BOUNDARIES = Object.fromEntries(((SOURCE && SOURCE.boundaries) || []).map(b=>[b.id,b]));
+  const WALL_PROPERTIES = GEO.wall_properties || {};
   // resolve a window's zone: its parent surface's zone first (parent = "<wall>_<i>"),
   // then a zone-name prefix, then the nearest zone centroid — never returns '?' so a
   // window always pops out + groups/explodes with a real zone.
@@ -470,6 +471,14 @@ _APP_JS = r"""
   }
   function boundaryEvidence(b,key){ return evidenceText([...(b&&b[key]||[]),...(b&&b.enclosure_regions||[]).flatMap(r=>r[key]||[])]); }
   function boundaryEvidenceKinds(b){ return [...new Set((b&&b.enclosure_regions||[]).map(r=>r.evidence_kind).filter(Boolean))].join(', '); }
+  function wallPropertyRows(b){
+    if(!b || b.geometry_type!=='wall' || b.kind!=='physical') return [];
+    const p=WALL_PROPERTIES[b.id]||{}, thickness=p.thickness_m;
+    return [['墙厚',p.conflict?'厚度记录冲突，待确认':thickness==null?'未知':Number((thickness*1000).toFixed(3))+' mm'],
+      ['厚度判定',({observed:'图纸读数',inferred:'推断',unknown:'未知'})[p.evidence_status]||'未注明'],
+      ['取线位置',({centerline:'墙中心线',negative_face:'世界负方向侧墙面',positive_face:'世界正方向侧墙面',unknown:'未知'})[p.reference_side]||'未知'],
+      ['厚度依据',evidenceText(p.basis||[])],['墙厚来源',evidenceText(p.source_refs||[])]];
+  }
   function describe(mode,o){ const u=o.userData;
     if(mode==='floor') return '<div class="hh">楼层</div>'+kv([['名称',floorName(u.floor)],['底标高',BASES[u.floor]+' m']])+traceInfo([['源楼层 ID',NAMED_FLOORS[u.floor]?.id],['原楼层名',NAMED_FLOORS[u.floor]?.source_name]]);
     if(u.kind==='enclosure-region' && mode!=='zone'){ const boundary=SOURCE_BOUNDARIES[u.boundaryId];
@@ -495,6 +504,7 @@ _APP_JS = r"""
     const boundary=boundaryFor(u);
     return '<div class="hh">surface</div>'+kv([['名称',u.publicName||objectName(u.name)],['所属面',objectName(u.parent||u.name)],['所属房间',spaceName(u.zone)],['所属楼层',floorName(u.floor)],['type',u.type],
       ['显示语义',u.kind==='surface'?(u.enclosureCondition==='unknown'?'未知围护（未当作实体墙）':'实体围护'):'窗'],
+      ...(u.type==='Wall'?wallPropertyRows(boundary):[]),
       ['边界围护',boundary&&enclosureLabel(boundary.enclosure||boundary.kind)],['边界覆盖',coverageFor(boundary)],
       ['证据类型',boundaryEvidenceKinds(boundary)],['假设',boundaryEvidence(boundary,'assumptions')],
       ['area',(u.area||0).toFixed(2)+' m²'], ['note', u.type==='Wall'?'当前实体片面积；开敞或未知区域另以半透明灰色辅助面显示':'']])+traceInfo([
@@ -760,6 +770,34 @@ def discover_roles(bg_path: Path) -> dict:
     return {}
 
 
+def wall_properties(source: dict) -> dict:
+    """Project optional thickness evidence for selection, including unknowns.
+
+    Component edits and reading evidence can coexist. If they disagree, expose
+    that conflict instead of silently choosing one value in the viewer.
+    """
+    result = {}
+    records = [*source.get("component_attributes", []), *source.get("wall_references", [])]
+    for boundary in source.get("boundaries", []):
+        if boundary.get("geometry_type") != "wall" or boundary.get("kind") != "physical":
+            continue
+        rows = [row for row in records
+                if boundary["id"] in row.get("boundary_ids", [row.get("boundary_id")])]
+        values = {row["thickness_m"] for row in rows if row.get("thickness_m") is not None}
+        statuses = {row["evidence_status"] for row in rows if row.get("evidence_status")}
+        sides = {row["reference_side"] for row in rows if row.get("reference_side")}
+        result[boundary["id"]] = {
+            "thickness_m": next(iter(values)) if len(values) == 1 else None,
+            "conflict": len(values) > 1,
+            "evidence_status": next(iter(statuses)) if len(statuses) == 1 else ("unknown" if not values else None),
+            "reference_side": next(iter(sides)) if len(sides) == 1 else "unknown",
+            "basis": list(dict.fromkeys(row.get("basis") or row.get("reference_basis")
+                                        for row in rows if row.get("basis") or row.get("reference_basis"))),
+            "source_refs": list(dict.fromkeys(ref for row in rows for ref in row.get("source_refs", []))),
+        }
+    return result
+
+
 def build_viewer_html(data: dict, *, title: str = "building geometry", roles: dict | None = None) -> str:
     three_js = (_VENDOR / "three.min.js").read_text(encoding="utf-8")
     orbit_js = (_VENDOR / "OrbitControls.js").read_text(encoding="utf-8")
@@ -781,6 +819,7 @@ def build_viewer_html(data: dict, *, title: str = "building geometry", roles: di
     geo["room_types"] = ROOM_TYPES
     geo["public_names"] = viewer_names(data, geo["visible_wall_parts"])
     source = data.get("source_model") or {}
+    geo["wall_properties"] = wall_properties(source)
     spaces = {row["id"]: row for row in source.get("spaces", [])}
     source_floors = {row["id"]: row for row in source.get("floors", [])}
     zone_map = source.get("derived", {}).get("zones", {})

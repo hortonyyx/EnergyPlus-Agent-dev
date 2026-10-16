@@ -179,7 +179,7 @@ def test_t_partition_keeps_all_spaces_and_resolves_openings_without_resizing():
         "inferred_partitions": False,
     }
     assert metadata["calibration"]["world_metres_per_pixel"]["y"] < 0
-    assert "not independently verified" in proposal["unresolved"][-1]
+    assert proposal["unresolved"] == plan["unresolved"]
 
 
 def test_folded_partition_preserves_nonrectangular_cells_and_collinear_cleanup():

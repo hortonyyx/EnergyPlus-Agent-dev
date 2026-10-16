@@ -23,6 +23,16 @@ DELIVERY_TOOL = {
 }
 
 
+def _local_checks(record):
+    issues = [*record["geometry"]["issues"],
+              *record["value"]["validation"].get("local_issues", [])]
+    blocking = [row for row in issues if row["type"] in {
+        "adopted_projection_outside_image", "vertical_calibration_level_conflict"}]
+    return {"status": "needs_correction" if blocking else "ready_for_visual_review",
+            "blocking_issues": blocking, "issues": issues,
+            "coverage": record["geometry"].get("coverage", {"facade_outline": "not_provided"})}
+
+
 def load_trial(submission, trial_id):
     if not isinstance(trial_id, str) or not re.fullmatch(r"elevation_[a-f0-9]{16}", trial_id):
         raise ValueError("use the trial_id returned by trial_elevation_reading")
@@ -73,11 +83,16 @@ def prepare_trial(submission, arguments):
         record["record_sha256"] = hashlib.sha256(_bytes(record)).hexdigest()
         path.write_bytes(_bytes(record))
     (submission.directory / "elevation_latest.json").write_bytes(_bytes({"trial_id": trial_id}))
+    checks = _local_checks(record)
     result = envelope({"status": "prepared", "trial_id": trial_id,
         "artifact_sha256": value["artifact_sha256"], "counts": value["artifact"]["counts"],
-        "views": record["views"], "issues": record["geometry"]["issues"],
+        "views": record["views"], "issues": checks["issues"],
+        "ready_for_delivery": not checks["blocking_issues"],
+        "blocking_issues": checks["blocking_issues"], "coverage": checks["coverage"],
         "unresolved": value["artifact"]["unresolved"], "independently_verified": False,
-        "next_action": "Inspect these adopted-value views. Revise concrete errors with trial_elevation_reading; otherwise submit this trial_id and local_review.summary."})
+        "next_action": ("Correct the named blocking issues and prepare another trial; inspect these views to locate the conflict."
+            if checks["blocking_issues"] else
+            "Inspect these adopted-value views. Revise concrete errors with trial_elevation_reading; otherwise submit this trial_id and local_review.summary.")})
     for view in record["views"]:
         raw = (submission.directory / view["file"]).read_bytes()
         result["content"].append({"type": "image", "data": base64.b64encode(raw).decode("ascii"), "mimeType": "image/png"})
@@ -91,7 +106,12 @@ def reviewed_value(submission, arguments):
     if arguments["trial_id"] != latest["trial_id"]:
         raise ValueError("submit the latest prepared elevation trial")
     record = load_trial(submission, arguments["trial_id"])
+    checks = _local_checks(record)
+    if checks["blocking_issues"]:
+        raise ValueError("elevation trial still has blocking local geometry errors: " +
+                         json.dumps(checks["blocking_issues"], ensure_ascii=False, separators=(",", ":")))
     value = record["value"]
+    value["validation"]["local_checks"] = checks
     value["validation"]["local_review"] = local_review(arguments["local_review"],
         artifact_sha256=value["artifact_sha256"], views=record["views"],
         image_sha256=value["validation"]["image_sha256"])

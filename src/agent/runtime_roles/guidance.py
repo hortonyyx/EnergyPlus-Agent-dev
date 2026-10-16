@@ -22,14 +22,18 @@ absolute. A shared bounding-box origin may lie outside an L-shaped footprint: ne
 it with a physical wall corner or a local crop/step origin. Keep the assigned datum stable.
 Plan points and first anchor values are ORIGINAL pixels, even in resized views. Use the
 returned pixel grid/transform; check anchors against the original dimension extension lines.
-Second anchor values,
-z_floor, ceiling_height and opening z are metres. Passing checks never proves fidelity."""
+Second anchor values and wall thickness are metres. Set reading_type="plan". Unknown
+z_floor, ceiling_height and opening z are omitted, never guessed for a preview. Passing
+checks never proves fidelity. The first request already includes the admitted image, its
+size and an ORIGINAL-pixel grid: do not call inputs or reread the whole image by habit."""
 
-_PLAN_FIRST_DRAFT = """Start from the whole drawing and the batched enlarged blocks. In the same pass, inventory
+_PLAN_FIRST_DRAFT = """Read the supplied whole-image grid. Enlarge only regions whose dimensions or marks are
+unreadable; view_plan_blocks is optional, not a required pass. In the same pass, inventory
 the complete footprint, partitions, rooms, doors/windows and all readable exterior and
 internal dimension chains. Do not profile each line. As soon as the full structure is
 represented, send one complete plan to trial_plan_bim so code can place it and expose only
-the remaining local conflicts.
+the remaining local conflicts. This produces a 2D reading, clean plan and original overlay,
+not source BIM. Source BIM is built only after assembly resolves cross-view geometry.
 
 dimension_chains rows use id, axis=x/y, segments_mm, tick_pixels and source_refs. total_mm
 and start_world_m are optional when the drawing does not establish them. Supply printed
@@ -50,9 +54,18 @@ space_seeds[].point, not wall/room polygons or opening room/space_id/facade fiel
 Seeds label room interiors, never create walls; choose role from the full table below.
 Do not duplicate footprint as partitions. Exterior doors/windows lie on footprint;
 interior doors/open passages lie on partitions continuing through apertures. Only exterior
-windows are supported. Label assumed heights. Never remove an observed object or change
+windows are supported. Omit heights absent from this drawing. Never remove an observed object or change
 room topology merely to make a trial pass.
-Failed geometry remains a saved declaration, not a passed BIM. Use read_plan_draft()
+source_refs on partitions/openings may be omitted: code records the admitted image and object ID.
+Keep explicit annotation references when they add useful evidence. Room role_evidence is optional;
+if supplied for an inferred role it must include assumptions. Use unknown for unclear use.
+wall_metadata rows: target=footprint:0 (original edge index) or partition:<id>, thickness_m
+(positive metres or null), reference_side=centerline/negative_face/positive_face/unknown,
+evidence_status=observed/inferred/unknown, basis, source_refs. Negative/positive means world
+-X/+X for vertical walls, -Y/+Y for horizontal walls, independent of vertex order. Read
+thickness from annotated dimensions or visible paired wall faces and state that basis;
+unknown stays null. Metadata never moves a wall or establishes cross-floor identity.
+Failed geometry remains a saved declaration, not an accepted reading. Use read_plan_draft()
 to see editability, the current operations base and the last passed plan separately.
 Read field plus optional object_id for one object; field="plan" browses the saved
 declaration in bounded pages. Follow returned read/next arguments; plan:/ JSON pointers
@@ -83,7 +96,8 @@ anchor bands do not locate dimensions. Optional notes={item,kind,basis}, kind=
 assumption/inferred/unresolved. item may be the exact plan path or an unambiguous declared
 object ID/collection alias; ambiguous and unknown items are rejected, never discarded.
 unresolved lists delivery questions.
-wall_reference defaults: perimeter=outer_face, partitions=centerline; no geometry move.
+wall_metadata carries per-wall thickness and reference side. Legacy wall_reference defaults
+(perimeter outer_face, partitions centerline) are broad conventions only, not measured thickness; no geometry move.
 Overrides: convention=centerline/inner_face/outer_face/explicit_face, dimension-to-line
 basis; optional matching dimension_basis and annotation bbox. For axis_orientation North
 at image_bottom or East at image_left, north_arrow needs original arrow bbox, drawing
@@ -137,7 +151,9 @@ COMPACT_ELEVATION_EXAMPLE["openings"] = [
     {"id": "W1", "floor_id": "F1", "kind": "window", "opening_bbox": [200, 380, 300, 567],
      "evidence_type": "pixels"}]
 
-_ELEVATION_SCHEMA = """Read the whole facade first: batch its absolute level marks, overall horizontal dimension
+_ELEVATION_SCHEMA = """The first request already contains this admitted image, its original size and a pixel grid.
+Read it directly; use extra crops only where details are unreadable.
+Read the whole facade first: batch its absolute level marks, overall horizontal dimension
 and every opening in image order. Call trial_elevation_reading with one rough box per opening
 and two independent image calibrations:
 {example}
@@ -145,11 +161,18 @@ Replace the example with original observations. x_calibration distances increase
 image-left building edge; retain any partial-chain offset and give total facade_length_m.
 The task fixes facade and world direction. z_calibration pairs top/bottom pixels with
 absolute Z metres, decreasing down the image. Locate the supporting level marks in
-elevations (ground/floor/eave/roof/other; floor needs floor_id).
+elevations (ground/floor/eave/roof/other; floor needs floor_id). Where the corresponding
+horizontal line can be located, include line_y_px; the text bbox locates the label, not the
+line. Check actual extension/level lines; algebraic agreement alone cannot validate calibration.
+Include facade_outline={{points_px:[[x,y],...],closed:true/false,evidence_type:"pixels",basis:"..."}}
+for the visible exterior/roof outline. Use closed:true only for a complete observed perimeter;
+a cropped or hidden boundary stays open, with its missing extent in unresolved. The clean
+elevation must show both building outline and apertures. No supplied outline means incomplete coverage.
 opening_bbox is the approximate aperture [left,top,right,bottom] in ORIGINAL pixels;
 bbox, if supplied, is a separate evidence crop. Use evidence_type=pixels only for pixel
 estimates without annotation support; rough boxes suffice. For annotation, mixed or other
-bases, supply x_px/width_m/sill_m/head_m: these readings are retained. The tool checks ink
+bases, supply width_m/sill_m/head_m and x_px or opening_bbox: these readings are retained;
+code can take x_px from the supplied box. The tool checks ink
 within 0.30m and changes only pure pixels with a unique continuous line. It preserves
 floor-contact sills and records numeric/ink disagreements for review. It then adopts all
 absolute level Z values and opening width/sill/head values on the configured Lite BIM grid

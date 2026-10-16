@@ -42,6 +42,14 @@ def _reader_example(example):
         row["p1"], row["p2"] = point(row["p1"]), point(row["p2"])
     for row in value["space_seeds"]:
         row["point"] = point(row["point"])
+    value["reading_type"] = "plan"
+    value.pop("z_floor", None)
+    value.pop("ceiling_height", None)
+    for row in value["openings"]:
+        row.pop("z", None)
+        row.pop("source_refs", None)
+    for row in value["partitions"]:
+        row.pop("source_refs", None)
     return value
 
 
@@ -72,6 +80,7 @@ POINT = _array(PIXEL, 2, 2)
 ANCHOR = {"type": "array", "prefixItems": [PIXEL, LENGTH], "items": False,
           "minItems": 2, "maxItems": 2}
 PARTITION = _object({"id": TEXT, "points": _array(POINT, 2), "source_refs": REFS}, _PARTITION_FIELDS)
+PARTITION["required"] = [field for field in PARTITION["required"] if field != "source_refs"]
 SEED = _object({"id": TEXT, "point": POINT, "role": TEXT, "source_refs": STRINGS,
                 "role_evidence": RoomRoleEvidence.model_json_schema()}, {"id", "point"})
 OPENING = _object({"id": TEXT, "kind": {"enum": ["window", "door", "open"]},
@@ -89,6 +98,7 @@ DIMENSION_CHAIN = _object({
     "source_refs": REFS,
 }, {"id", "axis", "segments_mm", "tick_pixels", "source_refs"})
 PLAN_FORMAT = _object({
+    "reading_type": {"const": "plan"}, "wall_metadata": {"type": "array", "items": {"type": "object"}},
     "floor_id": TEXT, "z_floor": LENGTH, "ceiling_height": LENGTH, "basis": TEXT,
     "x_anchors": _array(ANCHOR, 2, 2), "y_anchors": _array(ANCHOR, 2, 2),
     "footprint_pixels": _array(POINT, 4), "partitions": _array(PARTITION),
@@ -101,7 +111,10 @@ PLAN_FORMAT = _object({
     # these inert audit/priority records so an aligned draft can be replayed.
     "regularization_inputs": {"type": "object"},
     "regularization": {"type": "object"},
-}, _REQUIRED_PLAN_FIELDS)
+}, _REQUIRED_PLAN_FIELDS - {"z_floor", "ceiling_height", "reading_type", "wall_metadata"})
+PLAN_FORMAT["allOf"] = [{"if": {"required": ["reading_type"], "properties": {"reading_type": {"const": "plan"}}},
+    "else": {"required": ["z_floor", "ceiling_height"]}}]
+OPENING["required"] = [field for field in OPENING["required"] if field not in {"z", "source_refs"}]
 assert set(PLAN_FORMAT["properties"]) == set(_PLAN_FIELDS) | {"dimension_chains"}
 assert set(OPENING["properties"]) == _OPENING_FIELDS
 assert set(SEED["properties"]) == _SEED_FIELDS
@@ -132,6 +145,17 @@ def plan_format_errors(plan):
                         row[field] = row.pop("pixels")
     for error in _Validator(PLAN_FORMAT).iter_errors(value):
         errors.append({"path": _path(error.absolute_path), "message": error.message})
+    if isinstance(value, Mapping):
+        if value.get("reading_type") != "plan":
+            for i, row in enumerate(value.get("openings", []) if isinstance(value.get("openings"), list) else []):
+                if isinstance(row, Mapping) and "z" not in row:
+                    errors.append({"path": f"plan.openings[{i}].z", "message": "required for a 3D plan; use reading_type='plan' for a 2D reading"})
+        if "wall_metadata" in value:
+            from src.agent.geometry.reader_wall_metadata import validate_wall_metadata
+            try:
+                validate_wall_metadata(value)
+            except (ValueError, TypeError, KeyError) as error:
+                errors.append({"path": "plan.wall_metadata", "message": str(error)})
     if isinstance(value, Mapping):
         for index, chain in enumerate(value.get("dimension_chains", [])
                                       if isinstance(value.get("dimension_chains", []), list) else []):

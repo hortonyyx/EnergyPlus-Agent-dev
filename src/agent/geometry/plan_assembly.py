@@ -82,6 +82,7 @@ def assemble_plan_proposals(items: list[dict]) -> dict:
     global_x: list[float] = []
     global_y: list[float] = []
     placements = []
+    wall_readings = []
 
     for index, raw_item in enumerate(items):
         path = f"items[{index}]"
@@ -101,8 +102,9 @@ def assemble_plan_proposals(items: list[dict]) -> dict:
             _identifier(source_ref, f"{path}.source_ref")
 
         original = raw_item["proposal"]
-        if not isinstance(original, dict) or set(original) != _PROPOSAL_FIELDS:
-            raise ValueError(f"{path}.proposal must have geometry, assumptions, unresolved only")
+        if (not isinstance(original, dict) or not _PROPOSAL_FIELDS <= set(original)
+                or set(original) - _PROPOSAL_FIELDS - {"wall_readings"}):
+            raise ValueError(f"{path}.proposal needs geometry, assumptions, unresolved; wall_readings is optional")
         proposal = copy.deepcopy(original)
         geometry = proposal["geometry"]
         if not isinstance(geometry, dict) or set(geometry) - _GEOMETRY_FIELDS:
@@ -116,6 +118,14 @@ def assemble_plan_proposals(items: list[dict]) -> dict:
         if not isinstance(floor, dict):
             raise TypeError(f"{path}.proposal floor must be an object")
         original_floor_id = _identifier(floor.get("name"), f"{path}.proposal floor.name")
+        if "wall_readings" in proposal:
+            readings = proposal["wall_readings"]
+            if (not isinstance(readings, list) or len(readings) != 1
+                    or not isinstance(readings[0], dict)
+                    or readings[0].get("floor_id") != original_floor_id):
+                raise ValueError(f"{path}.wall_readings must refer to its one source floor")
+            readings[0]["floor_id"] = floor_id
+            wall_readings.extend(readings)
         source_z = _number(floor.get("z_floor"), f"{path}.proposal floor.z_floor")
         height = _number(floor.get("ceiling_height"), f"{path}.proposal floor.ceiling_height")
         if height <= 0:
@@ -209,7 +219,7 @@ def assemble_plan_proposals(items: list[dict]) -> dict:
         )
 
     check_floor_placements(placements)
-    return {
+    result = {
         "geometry": {
             "schema_version": "2",
             "footprint_x": [min(global_x), max(global_x)],
@@ -222,3 +232,6 @@ def assemble_plan_proposals(items: list[dict]) -> dict:
         "assumptions": assumptions,
         "unresolved": unresolved,
     }
+    if wall_readings:
+        result["wall_readings"] = wall_readings
+    return result

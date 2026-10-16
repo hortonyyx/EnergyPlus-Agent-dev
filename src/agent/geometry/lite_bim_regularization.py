@@ -51,15 +51,19 @@ def lite_grid_step(plan: dict) -> float | None:
 
 
 def compiled_grid_report(proposal: dict, grid_step_m: float = DEFAULT_LITE_GRID_M) -> dict:
-    """Check actual compiled XYZ; seeds/calibration observations are not geometry."""
+    """Check compiled coordinates, leaving unknown 2D-reading heights absent."""
     geometry = proposal["geometry"]
     values = []
     for axis in ("x", "y"):
         values.extend((f"footprint_{axis}[{i}]", v) for i, v in enumerate(geometry.get(f"footprint_{axis}", [])))
     for floor in geometry.get("floors", []):
         name = floor.get("name", "floor")
-        values.extend([(f"{name}.z_floor", floor["z_floor"]),
-                       (f"{name}.z_top", floor["z_floor"] + floor["ceiling_height"])])
+        if "z_floor" in floor:
+            values.append((f"{name}.z_floor", floor["z_floor"]))
+            if "ceiling_height" in floor:
+                values.append((f"{name}.z_top", floor["z_floor"] + floor["ceiling_height"]))
+        elif "ceiling_height" in floor:
+            values.append((f"{name}.ceiling_height", floor["ceiling_height"]))
         for cell in floor.get("cells", []):
             for i, point in enumerate(cell.get("polygon", [])):
                 values.extend((f"{name}.{cell['id']}.polygon[{i}][{a}]", v) for a, v in enumerate(point))
@@ -67,7 +71,10 @@ def compiled_grid_report(proposal: dict, grid_step_m: float = DEFAULT_LITE_GRID_
             values.extend((f"{name}.footprint[{i}][{a}]", v) for a, v in enumerate(point))
     for opening in [*geometry.get("windows", []), *geometry.get("openings", [])]:
         for field in ("p1", "p2", "z"):
-            values.extend((f"{opening['id']}.{field}[{a}]", v) for a, v in enumerate(opening[field]))
+            if field == "z" and field not in opening:
+                continue
+            values.extend((f"{opening['id']}.{field}[{a}]", v)
+                          for a, v in enumerate(opening[field]))
     violations = [{"path": path, "adopted_m": value} for path, value in values
                   if abs(value - quantize_m(value, grid_step_m)) > 1e-7]
     return {"status": "pass" if not violations else "rejected", "grid_step_m": grid_step_m,
@@ -132,16 +139,22 @@ Q1 this path never resolves a narrow strip by deleting/merging a source room.
     for opening in result.get("openings", []):
         for field in ("p1", "p2"):
             opening[field] = point(opening[field], f"openings:{opening['id']}.{field}")
-        for index, value in enumerate(opening["z"]):
+        for index, value in enumerate(opening.get("z", [])):
             adopted = quantize_m(value, grid_step_m)
             record(f"openings:{opening['id']}.z[{index}]", value, adopted)
             opening["z"][index] = adopted
-    z_bottom = result["z_floor"]
-    z_top = z_bottom + result["ceiling_height"]
-    result["z_floor"] = quantize_m(z_bottom, grid_step_m)
-    result["ceiling_height"] = round(quantize_m(z_top, grid_step_m) - result["z_floor"], 12)
-    record("z_floor", z_bottom, result["z_floor"])
-    record("z_top", z_top, result["z_floor"] + result["ceiling_height"])
+    if "z_floor" in result:
+        z_bottom = result["z_floor"]
+        result["z_floor"] = quantize_m(z_bottom, grid_step_m)
+        record("z_floor", z_bottom, result["z_floor"])
+        if "ceiling_height" in result:
+            z_top = z_bottom + result["ceiling_height"]
+            result["ceiling_height"] = round(quantize_m(z_top, grid_step_m) - result["z_floor"], 12)
+            record("z_top", z_top, result["z_floor"] + result["ceiling_height"])
+    elif "ceiling_height" in result:
+        original_height = result["ceiling_height"]
+        result["ceiling_height"] = quantize_m(original_height, grid_step_m)
+        record("ceiling_height", original_height, result["ceiling_height"])
     for i, reference in enumerate(result.get("regularization_inputs", {}).get("coordinate_references", [])):
         original = reference["value_m"]
         reference["value_m"] = quantize_m(original, grid_step_m)
@@ -204,7 +217,8 @@ Q1 this path never resolves a narrow strip by deleting/merging a source room.
                                       "grid_step_m": grid_step_m, "opening_ids": opening_ids,
                                       "before_relationships": before_sig, "after_relationships": after_sig})
     for row in current_items:
-        if (row["path"] in {"z_floor", "z_top"} or ".z[" in row["path"]) and abs(row["movement_m"]) > 1e-9:
+        if (row["path"] in {"z_floor", "z_top", "ceiling_height"}
+                or ".z[" in row["path"]) and abs(row["movement_m"]) > 1e-9:
             report["changes"].append({"type": "lite_grid_height", "floor_id": result["floor_id"],
                                       "path": row["path"], "from_m": row["original_m"], "to_m": row["adopted_m"],
                                       "movement_m": row["movement_m"], "grid_step_m": grid_step_m,

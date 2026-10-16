@@ -61,7 +61,7 @@ def topology_issues(receipts):
     """
     found = {}
     for receipt in receipts:
-        if receipt.get("source_geometry_ready") is False:
+        if receipt.get("reading_geometry_ready", receipt.get("source_geometry_ready")) is False:
             continue
         report = receipt.get("drawing_differences", {})
         for row in report.get("items", []) if isinstance(report, Mapping) else []:

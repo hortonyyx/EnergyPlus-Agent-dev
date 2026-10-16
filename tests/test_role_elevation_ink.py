@@ -363,3 +363,158 @@ def test_normalization_retains_annotated_originals_beside_grid_adopted_values():
     args["openings"][0].pop("width_m")
     with pytest.raises(ValueError):
         validate_elevation_artifact(expand_elevation_submission(args, "North/F1"), image_name="North.png")
+
+
+def _node_arguments():
+    return {
+        "x_calibration": {"pixel_start": 10, "pixel_end": 110, "distance_start_m": 0,
+                          "distance_end_m": 10, "facade_length_m": 10},
+        "z_calibration": {"pixel_start": 10, "pixel_end": 110,
+                          "world_start_m": 10, "world_end_m": 0},
+        "elevations": [
+            {"id": "roof", "kind": "roof", "value_m": 10,
+             "evidence_type": "pixels", "bbox": [0, 9, 120, 11], "line_y_px": 10},
+            {"id": "ground", "kind": "ground", "value_m": 0,
+             "evidence_type": "pixels", "bbox": [0, 109, 120, 111], "line_y_px": 110},
+        ],
+        "openings": [],
+        "counts": [{"floor_id": "F1", "window_count": 0, "door_count": 0}],
+        "unresolved": [],
+    }
+
+
+def _node_tools(root):
+    image_dir = root / "images"
+    image_dir.mkdir()
+    image_path = image_dir / "North.png"
+    Image.new("RGB", (140, 120), "white").save(image_path)
+    (root / "inputs.json").write_text(json.dumps({"images": {"North.png": {
+        "sha256": hashlib.sha256(image_path.read_bytes()).hexdigest()}}}), encoding="utf-8")
+    return ElevationReaderTools(Frozen(root), role_id="elevation_reader", image_name="North.png", target="North/F1")
+
+
+def test_annotated_opening_box_supplies_pixels_without_inventing_annotated_dimensions():
+    arguments = _node_arguments()
+    arguments["openings"] = [{"id": "W1", "floor_id": "F1", "kind": "window",
+        "opening_bbox": [40, 30, 90, 80], "width_m": 4.97, "sill_m": 3.04, "head_m": 7.96,
+        "evidence_type": "annotation_and_pixels", "bbox": [35, 25, 95, 85]}]
+    arguments["counts"][0]["window_count"] = 1
+    saved = copy.deepcopy(arguments)
+    result = validate_elevation_artifact(expand_elevation_submission(arguments, "North/F1"), image_name="North.png")
+    assert arguments == saved
+    assert result["openings"][0]["x_px"] == [40, 90]
+    original = {row["field"]: row["original_m"] for row in result["regularization"]["readings"]
+                if row["item_id"] == "W1"}
+    assert original == {"width_m": 4.97, "sill_m": 3.04, "head_m": 7.96}
+    arguments["openings"][0].pop("head_m")
+    with pytest.raises(ValueError, match="explicit width_m/sill_m/head_m"):
+        validate_elevation_artifact(expand_elevation_submission(arguments, "North/F1"), image_name="North.png")
+
+
+@pytest.mark.parametrize("closed", [False, True])
+def test_observed_facade_outline_is_preserved_and_open_chains_are_not_closed(tmp_path, closed):
+    async def scenario():
+        from src.agent.runtime_roles.elevation_trial import load_trial
+        tools = _node_tools(tmp_path)
+        arguments = _node_arguments()
+        outline = {"points_px": [[10, 110], [10, 40], [110, 40]], "closed": closed,
+                   "evidence_type": "pixels", "basis": "visible perimeter" if closed else "right lower side cropped"}
+        arguments["facade_outline"] = outline
+        result = await tools.call_tool("trial_elevation_reading", arguments)
+        assert not result["isError"], result
+        body = result["structuredContent"]
+        assert body["coverage"]["facade_outline"] == ("closed_perimeter" if closed else "open_chain")
+        assert body["coverage"]["facade_outline_evidence_type"] == "pixels"
+        trial = load_trial(tools.submission, body["trial_id"])
+        observed = trial["geometry"]["facade_outline"]
+        assert observed["points_px"] == outline["points_px"]
+        assert observed["world_xz_points_m"] == [[10, 0], [10, 7], [0, 7]]
+        with Image.open(tmp_path / trial["views"][0]["file"]) as picture:
+            assert picture.getpixel((60, 75)) == ((70, 95, 80) if closed else (255, 255, 255))
+        submitted = await tools.call_tool("submit_elevation_reading", {"trial_id": body["trial_id"], "local_review": REVIEW})
+        assert not submitted["isError"], submitted
+        assert tools.submission.read()["artifact"]["facade_outline"] == outline
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("points,closed", [
+    ([[0, 0], [80, 80], [80, 0], [0, 80]], True),
+    ([[10, 10], [150, 10]], False),
+])
+def test_crossing_or_outside_facade_outline_is_rejected(tmp_path, points, closed):
+    async def scenario():
+        tools = _node_tools(tmp_path)
+        arguments = _node_arguments()
+        arguments["facade_outline"] = {"points_px": points, "closed": closed,
+            "evidence_type": "pixels", "basis": "observed perimeter"}
+        result = await tools.call_tool("trial_elevation_reading", arguments)
+        assert result["isError"]
+        assert "facade_outline" in result["structuredContent"]["reason"]
+        assert tools.submission.read() is None
+    asyncio.run(scenario())
+
+
+def test_explicit_z_frame_cannot_waive_conflicting_located_levels(tmp_path):
+    async def scenario():
+        tools = _node_tools(tmp_path)
+        arguments = _node_arguments()
+        arguments["z_calibration"].update(world_start_m=10.5, world_end_m=0.5)
+        result = await tools.call_tool("trial_elevation_reading", arguments)
+        assert not result["isError"], result
+        body = result["structuredContent"]
+        assert not body["ready_for_delivery"]
+        assert {row["level_id"] for row in body["blocking_issues"]} == {"roof", "ground"}
+        rejected = await tools.call_tool("submit_elevation_reading", {"trial_id": body["trial_id"], "local_review": REVIEW})
+        assert rejected["isError"] and tools.submission.read() is None
+        fixed = await tools.call_tool("trial_elevation_reading", _node_arguments())
+        assert fixed["structuredContent"]["ready_for_delivery"]
+        assert fixed["structuredContent"]["coverage"]["facade_outline"] == "not_provided"
+        accepted = await tools.call_tool("submit_elevation_reading", {
+            "trial_id": fixed["structuredContent"]["trial_id"], "local_review": REVIEW})
+        assert not accepted["isError"], accepted
+    asyncio.run(scenario())
+
+
+def test_projected_opening_outside_original_is_not_deliverable(tmp_path):
+    async def scenario():
+        tools = _node_tools(tmp_path)
+        arguments = _node_arguments()
+        arguments["openings"] = [{"id": "W1", "floor_id": "F1", "kind": "window",
+            "opening_bbox": [40, 30, 90, 80], "width_m": 5, "sill_m": -2, "head_m": 8,
+            "evidence_type": "annotation_and_pixels"}]
+        arguments["counts"][0]["window_count"] = 1
+        result = await tools.call_tool("trial_elevation_reading", arguments)
+        assert not result["isError"], result
+        body = result["structuredContent"]
+        assert not body["ready_for_delivery"]
+        assert body["blocking_issues"][0]["type"] == "adopted_projection_outside_image"
+        rejected = await tools.call_tool("submit_elevation_reading", {"trial_id": body["trial_id"], "local_review": REVIEW})
+        assert rejected["isError"]
+    asyncio.run(scenario())
+
+
+def test_annotation_crop_position_is_not_used_as_a_level_line(tmp_path):
+    async def scenario():
+        tools = _node_tools(tmp_path)
+        arguments = _node_arguments()
+        for row in arguments["elevations"]:
+            row.pop("line_y_px")
+            row["evidence_type"] = "annotation"
+            row["bbox"] = [0, 50, 120, 52]
+        result = await tools.call_tool("trial_elevation_reading", arguments)
+        assert not result["isError"], result
+        body = result["structuredContent"]
+        assert body["ready_for_delivery"]
+        assert body["coverage"]["located_level_line_ids"] == []
+    asyncio.run(scenario())
+
+
+def test_level_line_outside_original_is_rejected(tmp_path):
+    async def scenario():
+        tools = _node_tools(tmp_path)
+        arguments = _node_arguments()
+        arguments["elevations"][0]["line_y_px"] = 130
+        result = await tools.call_tool("trial_elevation_reading", arguments)
+        assert result["isError"]
+        assert "line_y_px" in result["structuredContent"]["reason"]
+    asyncio.run(scenario())

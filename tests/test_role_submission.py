@@ -36,7 +36,7 @@ class PassedTrial:
 
     def __init__(self):
         self.plan = plan()
-        self.receipt = {"status": "passed", "plan_sha256": canonical_plan_sha256(self.plan),
+        self.receipt = {"status": "passed", "candidate": "candidate_01", "plan_sha256": canonical_plan_sha256(self.plan),
                         "candidate_source_sha256": "a" * 64, "validation_passed": True,
                         "returned_images": [{"sha256": "b" * 64, "file": "mock-overlay.png"}]}
         self.receipts = [self.receipt]

@@ -54,9 +54,9 @@ ELEVATION_COORDINATES = (
 _ELEVATION_REWORK_COLLECTIONS = {
     "openings": {"floor_id", "kind", "x_px", "width_m", "sill_m", "head_m",
                  "evidence_type", "bbox", "opening_bbox"},
-    "elevations": {"floor_id", "kind", "value_m", "evidence_type", "bbox"},
+    "elevations": {"floor_id", "kind", "value_m", "evidence_type", "bbox", "line_y_px"},
 }
-_ELEVATION_REWORK_TOP_LEVEL = {"x_calibration", "z_calibration"}
+_ELEVATION_REWORK_TOP_LEVEL = {"x_calibration", "z_calibration", "facade_outline"}
 
 
 def normalize_elevation_rework_targets(targets: Any) -> list[str]:
@@ -228,6 +228,20 @@ def elevation_submission_tool():
                        ("pixel_start", "pixel_end", "world_start_m", "world_end_m")},
         "required": ["pixel_start", "pixel_end", "world_start_m", "world_end_m"],
     }
+    schema["properties"]["facade_outline"] = {
+        "type": "object", "additionalProperties": False,
+        "properties": {
+            "points_px": {"type": "array", "minItems": 2, "items": {
+                "type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}},
+            "closed": {"type": "boolean"},
+            "evidence_type": {"enum": sorted(_EVIDENCE_TYPES)},
+            "basis": {"type": "string", "minLength": 1},
+        },
+        "required": ["points_px", "closed", "evidence_type", "basis"],
+    }
+    schema["properties"]["elevations"]["items"]["properties"]["line_y_px"] = {
+        "type": "number", "minimum": 0,
+        "description": "Original-image Y of the observed horizontal level line/leader tip, not the text label centre."}
     opening = schema["properties"]["openings"]["items"]
     opening["properties"]["opening_bbox"] = {
         "type": "array", "items": {"type": "number"}, "minItems": 4, "maxItems": 4}
@@ -238,7 +252,9 @@ def elevation_submission_tool():
     ]
     return {"name": "trial_elevation_reading", "description":
         "Prepare the assigned facade in one batch: horizontal and vertical calibration, all located levels, and a rough opening_bbox for each opening; "
-        "Only pixels evidence allows unique-ink corrections; other evidence needs explicit x_px/width_m/sill_m/head_m, which are retained and checked. "
+        "Include the visible facade_outline in original pixels; closed=true only for a fully observed perimeter, otherwise leave an open chain and explain its limits in basis. "
+        "Locate each visible level line with line_y_px; bbox may locate its separate annotation. "
+        "Only pixels evidence allows unique-ink corrections; other evidence needs explicit width_m/sill_m/head_m plus x_px or opening_bbox, which are retained and checked. "
         "The accepted artifact adopts absolute levels and opening width/sill/head on the 0.1 m Lite grid while retaining every original reading and shift. "
         "Direction/axis come from task.target. "
         "Returns adopted-value elevation and original-overlay images for local review; it does not deliver yet.", "inputSchema": schema}
@@ -365,6 +381,7 @@ class ElevationReaderSubmission(ReaderSubmission):
             "image_sha256": image_sha256,
             "z_calibration_evidence": z_evidence,
         }
+        validation["local_issues"] = _vertical_calibration_issues(artifact)
         alignment = align_elevation_artifact(image_path, artifact)
         artifact = copy.deepcopy(artifact)
         artifact.pop("artifact_sha256", None)
@@ -674,10 +691,59 @@ def _normalize_z_calibration(value: Any) -> dict[str, float]:
     }
 
 
+def _normalize_facade_outline(value: Any) -> dict[str, Any]:
+    path = "facade_outline"
+    row = _mapping(value, path)
+    fields = {"points_px", "closed", "evidence_type", "basis"}
+    _allowed(row, fields, path)
+    _required(row, fields, path)
+    points = [_pair(point, f"{path}.points_px[{index}]")
+              for index, point in enumerate(_sequence(row["points_px"], f"{path}.points_px"))]
+    if any(coordinate < 0 for point in points for coordinate in point):
+        raise ValueError("facade_outline points must use nonnegative original-image pixels")
+    if not isinstance(row["closed"], bool):
+        raise ValueError("facade_outline.closed must be boolean")
+    closed = row["closed"]
+    if len(points) < (3 if closed else 2):
+        raise ValueError("facade_outline needs at least three points when closed, or two when open")
+    if any(first == second for first, second in zip(points, points[1:])):
+        raise ValueError("facade_outline has a repeated consecutive point")
+    if points[0] == points[-1] and not closed:
+        raise ValueError("facade_outline open chain cannot repeat its first point at the end")
+    from shapely.geometry import LineString, Polygon
+    shape = Polygon(points) if closed else LineString(points)
+    if not shape.is_valid or not shape.is_simple or (closed and shape.area <= 0):
+        raise ValueError("facade_outline must be a simple observed chain or a nonzero closed perimeter")
+    evidence_type = _string(row["evidence_type"], f"{path}.evidence_type")
+    if evidence_type not in _EVIDENCE_TYPES:
+        raise ValueError(f"facade_outline.evidence_type must be one of {sorted(_EVIDENCE_TYPES)}")
+    return {"points_px": points, "closed": closed, "evidence_type": evidence_type,
+            "basis": _string(row["basis"], f"{path}.basis")}
+
+
+def _vertical_calibration_issues(artifact):
+    """Compare explicit Z anchors with observed level lines, never label centres."""
+    from .height_evidence import IMAGE_EVIDENCE
+    calibration = artifact["z_calibration"]
+    issues = []
+    for row in artifact["elevations"]:
+        if row.get("line_y_px") is None or row["evidence_type"] not in IMAGE_EVIDENCE:
+            continue
+        predicted = _pixel_to_world(calibration, row["line_y_px"])
+        residual = abs(predicted - row["value_m"])
+        # Reuse the existing level-fit residual limit, before Lite rounding.
+        if residual > 0.10 + 1e-9:
+            issues.append({"type": "vertical_calibration_level_conflict", "level_id": row["id"],
+                "bbox": row["bbox"], "line_y_px": row["line_y_px"], "observed_z_m": row["value_m"],
+                "calibrated_z_m": predicted, "difference_m": residual,
+                "tolerance_m": 0.10})
+    return issues
+
+
 def _normalize_elevation(value: Any, index: int) -> dict[str, Any]:
     path = f"elevations[{index}]"
     row = _mapping(value, path)
-    allowed = {"id", "floor_id", "kind", "value_m", "evidence_type", "bbox"}
+    allowed = {"id", "floor_id", "kind", "value_m", "evidence_type", "bbox", "line_y_px"}
     required = {"id", "kind", "value_m", "evidence_type", "bbox"}
     _allowed(row, allowed, path)
     _required(row, required, path)
@@ -699,6 +765,8 @@ def _normalize_elevation(value: Any, index: int) -> dict[str, Any]:
     }
     if row.get("floor_id") is not None:
         result["floor_id"] = _string(row["floor_id"], f"{path}.floor_id")
+    if row.get("line_y_px") is not None:
+        result["line_y_px"] = _number(row["line_y_px"], f"{path}.line_y_px", minimum=0.0)
     if kind == "floor" and result["floor_id"] is None:
         raise ValueError(f"{path}.floor_id is required for kind='floor'")
     return result
@@ -742,9 +810,13 @@ def _normalize_opening(
         if row.get("opening_bbox") is not None else None
     )
     fields = {"x_px", "width_m", "sill_m", "head_m"}
+    if opening_bbox is not None:
+        # The aperture's horizontal pixels are the same observation for either
+        # basis; this does not infer any annotated width or absolute height.
+        row.setdefault("x_px", [opening_bbox[0], opening_bbox[2]])
     if opening_bbox is not None and not fields <= set(row):
         if evidence_type != "pixels":
-            raise ValueError(f"{path}: non-pixel evidence requires explicit x_px/width_m/sill_m/head_m; a rough box is not an annotation")
+            raise ValueError(f"{path}: non-pixel evidence requires explicit width_m/sill_m/head_m; a rough box is not an annotation")
         if z_calibration is None:
             raise ValueError(
                 f"{path}.opening_bbox requires z_calibration so sill/head are not invented"
@@ -824,6 +896,7 @@ def validate_elevation_artifact(
         "artifact_sha256",
         "ink_alignment",
         "regularization",
+        "facade_outline",
     }
     required = {
         "orientation",
@@ -934,6 +1007,8 @@ def validate_elevation_artifact(
     }
     if z_calibration is not None:
         normalized["z_calibration"] = z_calibration
+    if row.get("facade_outline") is not None:
+        normalized["facade_outline"] = _normalize_facade_outline(row["facade_outline"])
     if row.get("ink_alignment") is not None:
         alignment = _mapping(row["ink_alignment"], "ink_alignment")
         if alignment.get("schema_version") not in {"elevation_ink_alignment_v1", "elevation_ink_alignment_v2"}:

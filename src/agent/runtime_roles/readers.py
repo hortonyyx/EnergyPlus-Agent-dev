@@ -130,6 +130,8 @@ def _validate_plan(plan_value: object) -> dict[str, Any]:
         "floor_id", "z_floor", "ceiling_height", "x_anchors", "y_anchors", "basis",
         "footprint_pixels", "partitions", "openings", "assumptions", "unresolved",
     }
+    if plan.get("reading_type") == "plan":
+        required -= {"z_floor", "ceiling_height"}
     missing = sorted(required - set(plan))
     if missing:
         field = missing[0]
@@ -141,6 +143,8 @@ def _validate_plan(plan_value: object) -> dict[str, Any]:
     _nonempty_text(plan["floor_id"], "artifact.plan.floor_id", "F1")
     _nonempty_text(plan["basis"], "artifact.plan.basis", "observed dimension anchors and wall reference planes")
     for field in ("z_floor", "ceiling_height"):
+        if field not in plan and plan.get("reading_type") == "plan":
+            continue
         if not (_finite_number(plan[field]) or isinstance(plan[field], Mapping)):
             raise _minimum(f"artifact.plan.{field}", 0.0 if field == "z_floor" else 3.0,
                            "expected finite metres or an explicit tagged quantity")
@@ -178,15 +182,15 @@ def _validate_plan(plan_value: object) -> dict[str, Any]:
                 row["p1"] = _point(row.get("p1"), path + ".p1")
                 row["p2"] = _point(row.get("p2"), path + ".p2")
                 z = row.get("z")
-                if not isinstance(z, list) or len(z) != 2 or not all(
+                if not (z is None and plan.get("reading_type") == "plan") and (not isinstance(z, list) or len(z) != 2 or not all(
                     _finite_number(part) or isinstance(part, Mapping) for part in z
-                ):
+                )):
                     raise _minimum(path + ".z", [1.0, 2.4], "expected two absolute world heights")
             else:
                 row["point"] = _point(row.get("point"), path + ".point")
             if collection != "space_seeds":
                 refs = row.get("source_refs")
-                if not isinstance(refs, list) or not refs or not all(isinstance(ref, str) and ref.strip() for ref in refs):
+                if not (refs is None and plan.get("reading_type") == "plan") and (not isinstance(refs, list) or not refs or not all(isinstance(ref, str) and ref.strip() for ref in refs)):
                     raise _minimum(path + ".source_refs", ["plan.png: observed mark"],
                                    "expected at least one source description")
             rows[index] = row
@@ -488,10 +492,11 @@ class ReaderTools:
             tools.append({
                 "name": "trial_plan_bim",
                 "description": (
-                    "Align, regularize, compile, check and overlay an early complete plan after a whole-image and "
-                    "batched-block read. "
-                    "Send one complete plan with floor_id, z_floor, ceiling_height, x_anchors, y_anchors, basis, "
+                    "Validate, regularize and render a 2D plan reading and original overlay. No source BIM is made. "
+                    "Send one complete plan with reading_type='plan', floor_id, x_anchors, y_anchors, basis, "
                     "footprint_pixels, partitions, openings, space_seeds, assumptions and unresolved. Optional "
+                    "wall_metadata records thickness_m or null, reference_side and evidence for each observed wall. "
+                    "Omit unobserved z_floor/ceiling_height/opening z; assembly resolves them. "
                     "dimension_chains rows use id, axis, segments_mm, tick_pixels and source_refs; total_mm and "
                     "start_world_m are optional. tick_pixels has one more item than segments_mm. Code accumulates "
                     "shared chain nodes and adopts the configured Lite grid; do not hand-round or distribute residuals. "
@@ -635,6 +640,7 @@ class ReaderTools:
             try:
                 if "plan" in arguments:
                     plan = dict(arguments["plan"])
+                    plan.setdefault("reading_type", "plan")
                     # The task fixes the floor ID; operations cannot edit it, so a
                     # different spelling would block delivery (10-07 sm24 run4).
                     if self.submission.target_identity is not None:
