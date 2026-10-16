@@ -116,6 +116,44 @@ def test_reader_tools_filter_catalog_enforce_one_image_and_reference_provenance(
     asyncio.run(scenario())
 
 
+def test_plan_reader_reference_uses_initial_2d_contract_and_other_references_stay_frozen():
+    from scripts.tool_scripts.bim_agent_guidance import REFERENCES
+    from src.agent.runtime_roles.guidance import PLAN_READER_GUIDANCE, PLAN_READER_REFERENCE
+    from src.agent.runtime_roles.plan_format import READER_PLAN_EXAMPLE, plan_format_errors
+
+    class ReferenceFrozen(Frozen):
+        async def call_tool(self, name, arguments):
+            self.calls.append((name, arguments))
+            return {"content": [{"type": "text", "text": REFERENCES[arguments["topic"]]}]}
+
+    async def scenario():
+        frozen = ReferenceFrozen()
+        reader = ReaderTools(frozen, role_id="plan_reader", image_name="plan.png", trial=Trial())
+        result = await reader.call_tool("get_bim_reference", {"topic": "plan_partition"})
+        text = result["content"][0]["text"]
+        assert not frozen.calls
+        assert text == PLAN_READER_REFERENCE and text in PLAN_READER_GUIDANCE
+        assert "reading_type" in text and "wall_metadata" in text
+        assert "build_plan_bim" not in text and "assemble_plan_bim" not in text
+        example, _ = json.JSONDecoder().raw_decode(text[text.index('{"floor_id"'):])
+        assert example == READER_PLAN_EXAMPLE and not plan_format_errors(example)
+        assert "z_floor" not in example and "ceiling_height" not in example
+        assert all("z" not in row for row in example["openings"])
+        assert {row["evidence_status"] for row in example["wall_metadata"]} == {"observed", "unknown"}
+        known = next(row for row in example["wall_metadata"] if row["thickness_m"] is not None)
+        assert known["reference_side"] == "unknown" and known["source_refs"]
+        other = await reader.call_tool("get_bim_reference", {"topic": "room_types"})
+        assert other["content"][0]["text"] == REFERENCES["room_types"]
+        elevation = ReaderTools(frozen, role_id="elevation_reader", image_name="plan.png")
+        legacy = await elevation.call_tool("get_bim_reference", {"topic": "plan_partition"})
+        assert legacy["content"][0]["text"] == REFERENCES["plan_partition"]
+        assert "build_plan_bim" in legacy["content"][0]["text"]
+        assert frozen.calls == [("get_bim_reference", {"topic": "room_types"}),
+                                ("get_bim_reference", {"topic": "plan_partition"})]
+
+    asyncio.run(scenario())
+
+
 def test_reader_reference_provenance_survives_resume_and_enters_snapshot(tmp_path):
     async def scenario():
         (tmp_path / "inputs.json").write_text(json.dumps({

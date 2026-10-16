@@ -197,7 +197,8 @@ def test_dimension_move_keeps_split_collinear_footprint_orthogonal():
     assert not report["rejections"]
 
 
-def test_dimension_move_rejects_shrinking_declared_step_below_kernel_minimum():
+@pytest.mark.parametrize("would_shrink", [False, True])
+def test_dimension_tick_ownership_and_step_guard_preserve_distinct_perimeter_lines(would_shrink):
     value = {
         "floor_id": "F2", "z_floor": 4.0, "ceiling_height": 3.6,
         "x_anchors": [[0, 0.0], [100, 10.0]],
@@ -215,18 +216,29 @@ def test_dimension_move_rejects_shrinking_declared_step_below_kernel_minimum():
             "source_refs": ["plan.png: overall x chain"],
         }],
     }
+    if would_shrink:
+        # This tick uniquely belongs to the outer step, but its annotated
+        # position would shrink the connecting edge below the kernel minimum.
+        value["dimension_chains"][0].update(
+            segments_mm=[9350, 650], tick_pixels=[0, 94.3, 100])
 
     aligned, report = align_plan_to_dimensions(value)
 
     assert aligned["footprint_pixels"][1:4] == [
-        [94.24, 0], [94.24, 50], [92.9, 50],
+        [94.24, 0], [94.24, 50], [92.86 if would_shrink else 92.9, 50],
     ]
     assert aligned["footprint_pixels"][2][0] - aligned["footprint_pixels"][3][0] >= 1.0
-    rejection = next(row for row in report["rejections"]
-                     if row.get("object") == "footprint:1")
-    assert rejection["reason"] == (
-        "would shrink footprint edge 2 below min_edge_length_m 0.100000 m"
-    )
+    if would_shrink:
+        rejection = next(row for row in report["rejections"]
+                         if row.get("object") == "footprint:1")
+        assert rejection["reason"] == "would shrink footprint edge 2 below min_edge_length_m 0.100000 m"
+    else:
+        association = next(row for row in report["items"]
+                           if row.get("object") == "footprint:1")
+        assert association["action"] == "not_applied"
+        assert association["nearest_wall_pixels"] == [92.86]
+        assert association["reason"] == "nearest tick is closer to another observed wall coordinate"
+        assert not report["rejections"]
     assert Polygon(aligned["footprint_pixels"]).is_valid
 
 
@@ -268,6 +280,133 @@ def test_dimensions_bind_once_to_original_ticks_independent_of_chain_order():
         moves = [r for r in report["changes"] if r["object"] == "partition:wall"]
         assert len(moves) == 1 and moves[0]["chain_id"] == "wall-chain"
         assert moves[0]["observed_wall_pixel"] == moves[0]["observed_tick_pixel"] == 500
+
+
+def _competing_wall_plan():
+    return {
+        "floor_id": "F1", "z_floor": 0.0, "ceiling_height": 3.0,
+        "x_anchors": [[0, 0.0], [100, 10.0]],
+        "y_anchors": [[0, 0.0], [100, 10.0]],
+        "basis": "independent wall coordinates near one dimension tick",
+        "footprint_pixels": [[0, 0], [100, 0], [100, 100], [0, 100]],
+        "partitions": [
+            {"id": "upper", "points": [[50.5, 0], [50.5, 40]]},
+            {"id": "lower", "points": [[52, 60], [52, 100]]},
+        ],
+        "openings": [
+            {"id": "upper-door", "kind": "door", "p1": [50.5, 10], "p2": [50.5, 20],
+             "z": [0.0, 2.1], "source_refs": ["drawing: upper door"]},
+            {"id": "lower-door", "kind": "door", "p1": [52, 70], "p2": [52, 80],
+             "z": [0.0, 2.1], "source_refs": ["drawing: lower door"]},
+        ],
+        "space_seeds": [], "assumptions": [], "unresolved": [],
+        "dimension_chains": [{
+            "id": "lower-wall", "axis": "x", "segments_mm": [5300, 4700],
+            "tick_pixels": [0, 52, 100], "source_refs": ["drawing: lower wall dimensions"],
+        }],
+    }
+
+
+def test_tick_does_not_capture_different_wall_or_fall_back_to_farther_tick():
+    value = _competing_wall_plan()
+    value["dimension_chains"].append({
+        "id": "detail", "axis": "x", "segments_mm": [4900, 5100],
+        "tick_pixels": [0, 48.5, 100], "source_refs": ["drawing: detailed dimensions"],
+    })
+    for chains in (value["dimension_chains"], list(reversed(value["dimension_chains"]))):
+        original = {**value, "dimension_chains": chains}
+        preserved = copy.deepcopy(original)
+        aligned, report = align_plan_to_dimensions(original)
+
+        assert original == preserved
+        assert aligned["partitions"][0] == value["partitions"][0]
+        assert aligned["openings"][0] == value["openings"][0]
+        assert aligned["partitions"][1]["points"] == [[53.0, 60], [53.0, 100]]
+        assert aligned["openings"][1]["p1"] == [53.0, 70]
+        association = next(row for row in report["items"] if row.get("object") == "partition:upper")
+        assert association["observed_wall_pixel"] == 50.5
+        assert association["observed_tick_pixel"] == 52
+        assert association["nearest_wall_pixels"] == [52.0]
+        assert association["reason"] == "nearest tick is closer to another observed wall coordinate"
+        assert report["summary"]["wall_associations_not_applied"] == 1
+        assert not report["rejections"]
+        audit = aligned["regularization_inputs"]["reading_alignment"]["dimensions"]["items"]
+        assert association in audit
+        assert not any(row.get("partition_id") == "upper"
+                       for row in aligned["regularization_inputs"].get("line_references", []))
+
+
+def test_tick_between_distinct_equidistant_wall_lines_preserves_both():
+    value = _competing_wall_plan()
+    value["partitions"][0]["points"] = [[50, 0], [50, 40]]
+    value["openings"][0].update(p1=[50, 10], p2=[50, 20])
+    value["dimension_chains"][0].update(tick_pixels=[0, 51, 100], segments_mm=[5150, 4850])
+
+    aligned, report = align_plan_to_dimensions(value)
+
+    assert aligned["partitions"] == value["partitions"]
+    assert aligned["openings"] == value["openings"]
+    associations = [row for row in report["items"] if row.get("kind") == "wall_tick_association"]
+    assert len(associations) == 2
+    assert all(row["nearest_wall_pixels"] == [50.0, 52.0] for row in associations)
+    assert all(row["reason"] == "nearest tick has ambiguous wall coordinates" for row in associations)
+    assert not report["rejections"]
+
+
+def test_tick_nearest_partition_does_not_move_nearby_footprint_step():
+    value = _competing_wall_plan()
+    value["footprint_pixels"] = [[0, 0], [100, 0], [100, 100], [49, 100], [49, 50], [0, 50]]
+    value["partitions"] = value["partitions"][:1]
+    value["openings"] = value["openings"][:1]
+    value["dimension_chains"][0].update(tick_pixels=[0, 50.5, 100], segments_mm=[5100, 4900])
+
+    aligned, report = align_plan_to_dimensions(value)
+
+    assert aligned["footprint_pixels"] == value["footprint_pixels"]
+    assert aligned["partitions"][0]["points"] == [[51.0, 0], [51.0, 40]]
+    assert aligned["openings"][0]["p1"] == [51.0, 10]
+    association = next(row for row in report["items"] if row.get("object") == "footprint:3")
+    assert association["nearest_wall_pixels"] == [50.5]
+    assert not report["rejections"]
+
+
+def test_unmovable_polyline_segment_still_reserves_its_nearest_tick():
+    value = _competing_wall_plan()
+    value["partitions"][1]["points"].append([75, 100])
+
+    aligned, report = align_plan_to_dimensions(value)
+
+    assert aligned["partitions"] == value["partitions"]
+    assert aligned["openings"] == value["openings"]
+    association = next(row for row in report["items"] if row.get("object") == "partition:upper")
+    assert association["nearest_wall_pixels"] == [52.0]
+    assert not report["rejections"]
+
+
+def test_unassociated_wall_only_uses_normal_grid_in_complete_reading_preparation():
+    value = _competing_wall_plan()
+    value["partitions"].extend([
+        {"id": "cross-upper", "points": [[0, 40], [100, 40]]},
+        {"id": "cross-lower", "points": [[0, 60], [100, 60]]},
+    ])
+    for wall in value["partitions"]:
+        wall["source_refs"] = ["drawing: wall"]
+    dimensioned, _ = align_plan_to_dimensions(value, grid_step_m=.1)
+
+    aligned, reading, alignment = trial_module._reading_align(
+        value, image_path=None, image_name="plan.png", grid_step_m=.1)
+
+    assert dimensioned["partitions"][0]["points"][0][0] == 50.5
+    assert dimensioned["openings"][0]["p1"][0] == 50.5
+    # The unrelated tick remains available as a coordinate reference, but it
+    # cannot recapture this wall during the existing common 10 cm grid pass.
+    assert aligned["partitions"][0]["points"] == [[51.0, 0.0], [51.0, 40.0]]
+    assert aligned["openings"][0]["p1"][0] == 51.0
+    assert aligned["partitions"][1]["points"] == [[53.0, 60.0], [53.0, 100.0]]
+    assert aligned["openings"][1]["p1"][0] == 53.0
+    assert reading["lite_bim"]["status"] == "pass"
+    assert reading["lite_bim"]["topology"]["status"] == "preserved"
+    assert alignment["status"] == "lite_grid_applied"
 
 
 @pytest.mark.parametrize("tamper", ["changed", "missing"])

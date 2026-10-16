@@ -121,8 +121,13 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
                 connections[key] = resolve_connection(role.provider, args.credentials_file, model=role.model,
                     **({"chatgpt_auth_dir": getattr(args, "chatgpt_auth_dir", None)}
                        if role.provider == CHATGPT_SUBSCRIPTION else {}))
+        validated_models = set()
         for role in routes.values():
-            await validate_connection_model(connections[connection_key(role.provider, role.model)], role.model)
+            key = connection_key(role.provider, role.model)
+            identity = (key, role.model)
+            if identity not in validated_models:
+                await validate_connection_model(connections[key], role.model)
+                validated_models.add(identity)
     connection_routes = {name: (connections[connection_key(role.provider, role.model)].descriptor.model_dump(mode="json")
         if role.provider != "scripted" else {"route_id": "scripted", "billing_mode": "offline",
                                              "adapter_kind": "scripted"})

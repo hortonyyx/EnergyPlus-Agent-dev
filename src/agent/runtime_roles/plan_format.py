@@ -50,6 +50,16 @@ def _reader_example(example):
         row.pop("source_refs", None)
     for row in value["partitions"]:
         row.pop("source_refs", None)
+    value["wall_metadata"] = [
+        {"target": "partition:" + value["partitions"][0]["id"], "thickness_m": 0.18,
+         "reference_side": "unknown", "evidence_status": "observed",
+         "basis": "Synthetic paired faces establish thickness; the chosen line's face is uncertain.",
+         "source_refs": ["plan.png: synthetic local paired wall faces"]},
+        {"target": "footprint:0", "thickness_m": None, "reference_side": "unknown",
+         "evidence_status": "unknown", "basis": "Synthetic example: this edge's second face is unreadable.",
+         "source_refs": []},
+    ]
+    value["assumptions"] = ["Synthetic dimensions only; replace example observations with this task's evidence."]
     return value
 
 

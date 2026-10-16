@@ -312,9 +312,14 @@ class ReaderSubmission:
                 evidence = [*legacy_evidence, *(row for row in generated if row["item"] not in supplied)]
             artifact = validate_plan_artifact({"plan": numeric, "evidence": evidence,
                                                "unresolved": numeric["unresolved"]}, image_name=self.image_name)
-            notes = _normalize_note_items(arguments.get("notes", []), {
+            note_targets = {
                 row["item"] for row in artifact["evidence"]
-            } | {f"plan.{field}" for field in set(plan) | set(numeric)})
+            } | {f"plan.{field}" for field in set(plan) | set(numeric)}
+            if numeric.get("reading_type") == "plan" and validation.get("reading_geometry_ready") is True:
+                # The verified 2D product contains these records even when the
+                # declaration omitted them. Addressing them adds no observation.
+                note_targets.add("plan.wall_metadata")
+            notes = _normalize_note_items(arguments.get("notes", []), note_targets)
             # Field/collection notes stay in validation; an assumed height has
             # no pixel evidence to manufacture and must not change the trial.
             for note in notes:

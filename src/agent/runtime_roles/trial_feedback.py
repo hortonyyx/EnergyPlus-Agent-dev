@@ -137,7 +137,7 @@ def bound_receipt_projection(receipt, visible, *, max_bytes=24_000):
     priority = ("status", "trial_id", "error_type", "source_geometry_ready", "plan_sha256",
                 "receipt_file", "receipt_audit", "next_action", "submission", "reason", "message",
                 "editable_draft", "repair_hint", "format_errors", "regularization_failure",
-                "unhosted_openings", "source_findings", "topology_issues", "building_precision",
+                "unhosted_openings", "source_findings", "topology_issues", "building_precision", "wall_metadata_summary",
                 "drawing_differences", "audit_refs", "report_reading")
     result = {"receipt_audit": root, "omitted_field_count": 0}
     for field in dict.fromkeys((*priority, *projected)):

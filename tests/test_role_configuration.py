@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import copy
+import asyncio
 import json
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from pydantic import ValidationError
@@ -328,3 +330,77 @@ def test_local_drawing_process_routes_only_to_single_model_drawings(tmp_path):
                     {"image_kind": "photos"}, {"process_reviews": "true"}):
         with pytest.raises(ValueError):
             load(tmp_path, {**selected, **changes})
+
+
+def _connection_preflight_args(tmp_path, configured, *, name="run"):
+    from src.agent.runtime_roles.entry import parser
+    primary = configured["coordinator"]
+    return parser().parse_args([
+        "--out", str(tmp_path / name), "--run-root", str(tmp_path), "--images", str(tmp_path),
+        "--provider", primary["provider"], "--model", primary["model"],
+        "--roles-json", json.dumps(configured), "--seconds", "60",
+    ])
+
+
+@pytest.mark.parametrize("selections, expected", [
+    ([("chatgpt-subscription", "gpt-6-sol")] * 3,
+     [("chatgpt-subscription", "gpt-6-sol")]),
+    ([("chatgpt-subscription", "gpt-6-sol"), ("chatgpt-subscription", "gpt-6-luna"),
+      ("chatgpt-subscription", "gpt-6-sol")],
+     [("chatgpt-subscription", "gpt-6-sol"), ("chatgpt-subscription", "gpt-6-luna")]),
+    ([("glm-subscription", "glm-5.3-flash"), ("glm-subscription-anthropic", "glm-5.3-flash"),
+      ("glm-subscription", "glm-5.3-flash")],
+     [("glm-subscription", "glm-5.3-flash"), ("glm-subscription-anthropic", "glm-5.3-flash")]),
+])
+def test_execute_validates_each_connection_model_once_per_run(tmp_path, monkeypatch, selections, expected):
+    from src.agent.runtime_roles import entry
+
+    configured = {name: role(provider, model, "high")
+                  for name, (provider, model) in zip(ROLE_NAMES, selections, strict=True)}
+    checked = []
+
+    def resolve(provider, *args, **kwargs):
+        return SimpleNamespace(descriptor=SimpleNamespace(
+            route_id=provider, model_dump=lambda **unused: {"route_id": provider}))
+
+    async def validate(connection, model):
+        checked.append((connection.descriptor.route_id, model))
+
+    class PreflightComplete(Exception):
+        pass
+
+    def stop_after_preflight(*args, **kwargs):
+        raise PreflightComplete
+
+    monkeypatch.setattr(entry, "resolve_connection", resolve)
+    monkeypatch.setattr(entry, "validate_connection_model", validate)
+    monkeypatch.setattr(entry, "prepare_inputs", stop_after_preflight)
+    # Fresh executions must check again; this is not an account/model cache.
+    for index in range(2):
+        with pytest.raises(PreflightComplete):
+            asyncio.run(entry.execute(_connection_preflight_args(tmp_path, configured, name=f"run-{index}")))
+        assert checked == expected * (index + 1)
+
+
+def test_execute_model_validation_error_still_blocks_before_run_preparation(tmp_path, monkeypatch):
+    from src.agent.runtime_roles import entry
+
+    configured = {name: role("chatgpt-subscription", "gpt-6-sol" if name != "elevation_reader"
+                            else "gpt-6-luna", "high") for name in ROLE_NAMES}
+    checked = []
+    connection = object()
+    monkeypatch.setattr(entry, "resolve_connection", lambda *a, **k: connection)
+
+    async def validate(selected, model):
+        assert selected is connection
+        checked.append(model)
+        if model == "gpt-6-luna":
+            raise ValueError("offline fixture: selected model is not granted")
+
+    monkeypatch.setattr(entry, "validate_connection_model", validate)
+    monkeypatch.setattr(entry, "prepare_inputs", lambda *a, **k: pytest.fail("Failed validation must stop setup"))
+    args = _connection_preflight_args(tmp_path, configured)
+    with pytest.raises(ValueError, match="selected model is not granted"):
+        asyncio.run(entry.execute(args))
+    assert checked == ["gpt-6-sol", "gpt-6-luna"]
+    assert not args.out.exists()

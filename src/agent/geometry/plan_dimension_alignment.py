@@ -161,27 +161,73 @@ def _append_coordinate_references(plan: dict[str, Any], chain: Mapping[str, Any]
             rows.append(row)
 
 
+def _associate_tick_wall_coordinates(observed: Mapping[str, Any], *, axis: str,
+                                     ticks: list[dict[str, Any]]) -> None:
+    """Find each tick's nearest original wall coordinate, not a wall identity.
+
+    Collinear segments share a coordinate. Distinct coordinates compete even
+    when their wall spans are far apart: a one-dimensional tick cannot justify
+    pulling both onto the same line. Include all partition segments, including
+    ones that cannot themselves be moved by the straight-wall operation.
+    """
+    expected_along = "y" if axis == "x" else "x"
+    segments = [*_segments(observed.get("footprint_pixels", []), closed=True),
+                *(segment for wall in observed.get("partitions", [])
+                  for segment in _segments(wall.get("points", [])))]
+    coordinates = sorted({cross for _, along, _, cross, span in segments
+                          if along == expected_along and span[1] > span[0]})
+    for tick in ticks:
+        distance = min((abs(cross - tick["observed_pixel"]) for cross in coordinates),
+                       default=math.inf)
+        tick["nearest_wall_pixels"] = [
+            cross for cross in coordinates
+            if abs(abs(cross - tick["observed_pixel"]) - distance) < 1e-7
+        ]
+
+
 def _wall_tick(original_cross: float, ticks: list[dict[str, Any]], mpp: float):
-    """Associate once in the reader's observed frame, never after another snap."""
+    """Require reciprocal unique proximity in the original observed frame.
+
+    This is a coordinate association, not semantic proof of the measured wall.
+    If the nearest tick belongs to another coordinate, do not try a farther
+    tick: it may describe a window jamb or a different part of the building.
+    """
     nearest = min(ticks, key=lambda row: (abs(row["observed_pixel"] - original_cross),
                                          row["chain"]["id"], row["tick_index"]))
     distance = abs(nearest["observed_pixel"] - original_cross)
     if distance * mpp >= MAX_ALIGNMENT_WORLD_M:
-        return None
+        return None, None
     tied = [row for row in ticks if abs(abs(row["observed_pixel"] - original_cross) - distance) < 1e-7]
+    detail = {
+        "kind": "wall_tick_association", "action": "not_applied",
+        "basis": "observed_nearest_coordinate", "chain_id": nearest["chain"]["id"],
+        "tick_index": nearest["tick_index"], "observed_wall_pixel": original_cross,
+        "observed_tick_pixel": nearest["observed_pixel"],
+        "nearest_wall_pixels": nearest["nearest_wall_pixels"],
+    }
     if any(abs(row["target_pixel"] - nearest["target_pixel"]) * mpp > MAX_CHAIN_CROSS_CHECK_M
            for row in tied):
         # Proximity cannot choose between two different annotated wall positions.
-        return None
-    return nearest
+        return None, {**detail, "reason": "nearest ticks propose conflicting coordinates"}
+    for row in tied:
+        owners = row["nearest_wall_pixels"]
+        if len(owners) != 1 or abs(owners[0] - original_cross) >= 1e-7:
+            return None, {
+                **detail, "chain_id": row["chain"]["id"], "tick_index": row["tick_index"],
+                "observed_tick_pixel": row["observed_pixel"], "nearest_wall_pixels": owners,
+                "reason": ("nearest tick has ambiguous wall coordinates" if len(owners) != 1
+                           else "nearest tick is closer to another observed wall coordinate"),
+            }
+    return nearest, None
 
 
 def _snap_partitions(plan: dict[str, Any], *, observed: Mapping[str, Any], axis: str,
                      ticks: list[dict[str, Any]],
                      mpp: float) -> tuple[list[dict[str, Any]],
-                                                                    list[dict[str, Any]]]:
+                                        list[dict[str, Any]], list[dict[str, Any]]]:
     changes: list[dict[str, Any]] = []
     rejections: list[dict[str, Any]] = []
+    associations_not_applied: list[dict[str, Any]] = []
     # A vertical wall has an x coordinate; a horizontal wall has a y coordinate.
     expected_along = "y" if axis == "x" else "x"
     partition_ids = [str(row.get("id")) for row in plan.get("partitions", [])]
@@ -197,8 +243,11 @@ def _snap_partitions(plan: dict[str, Any], *, observed: Mapping[str, Any], axis:
         original = next(row for row in observed.get("partitions", [])
                         if str(row.get("id")) == partition_id)
         original_cross = list(_segments(original["points"]))[0][3]
-        tick = _wall_tick(original_cross, ticks, mpp)
+        tick, association = _wall_tick(original_cross, ticks, mpp)
         if tick is None:
+            if association is not None:
+                associations_not_applied.append({**association, "object": f"partition:{partition_id}",
+                                                 "axis": axis})
             continue
         target, chain = tick["target_pixel"], tick["chain"]
         distance_m = abs(target - old_cross) * mpp
@@ -241,19 +290,20 @@ def _snap_partitions(plan: dict[str, Any], *, observed: Mapping[str, Any], axis:
                                source_refs=[*partition.get("source_refs", []), *chain["source_refs"],
                                             f"dimension_chain:{chain['id']}"])
         changes.append({**base, "moved_with_wall": attached})
-    return changes, rejections
+    return changes, rejections, associations_not_applied
 
 
 def _snap_footprint(plan: dict[str, Any], *, observed: Mapping[str, Any], axis: str,
                     ticks: list[dict[str, Any]],
                     mpp: float) -> tuple[list[dict[str, Any]],
-                                                                   list[dict[str, Any]]]:
+                                       list[dict[str, Any]], list[dict[str, Any]]]:
     changes: list[dict[str, Any]] = []
     rejections: list[dict[str, Any]] = []
+    associations_not_applied: list[dict[str, Any]] = []
     expected_along = "y" if axis == "x" else "x"
     ring = plan.get("footprint_pixels", [])
     if not isinstance(ring, list) or len(ring) < 4:
-        return changes, rejections
+        return changes, rejections, associations_not_applied
 
     # Each edge is considered once against verified ticks on its own axis.
     # A nearby tick on the other axis cannot authorize a move.
@@ -274,8 +324,11 @@ def _snap_footprint(plan: dict[str, Any], *, observed: Mapping[str, Any], axis: 
         original_segment = next(row for row in _segments(observed["footprint_pixels"], closed=True)
                                 if row[0] == edge_index)
         original_cross = original_segment[3]
-        tick = _wall_tick(original_cross, ticks, mpp)
+        tick, association = _wall_tick(original_cross, ticks, mpp)
         if tick is None:
+            if association is not None:
+                associations_not_applied.append({**association, "object": f"footprint:{edge_index}",
+                                                 "axis": axis})
             continue
         target, chain = tick["target_pixel"], tick["chain"]
         distance_m = abs(target - old_cross) * mpp
@@ -329,7 +382,7 @@ def _snap_footprint(plan: dict[str, Any], *, observed: Mapping[str, Any], axis: 
                              f"dimension_chain:{chain['id']}"],
             )
         changes.append({**base, "action": "moved", "moved_with_wall": attached})
-    return changes, rejections
+    return changes, rejections, associations_not_applied
 
 
 def align_plan_to_dimensions(plan: Mapping[str, Any], *, grid_step_m: float | None = None) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -351,6 +404,7 @@ def align_plan_to_dimensions(plan: Mapping[str, Any], *, grid_step_m: float | No
     items: list[dict[str, Any]] = []
     rejections: list[dict[str, Any]] = []
     changes: list[dict[str, Any]] = []
+    associations_not_applied: list[dict[str, Any]] = []
     accepted_axes: set[str] = set()
     applied_chains = 0
     supplemental_chains = 0
@@ -554,20 +608,23 @@ def align_plan_to_dimensions(plan: Mapping[str, Any], *, grid_step_m: float | No
                       "exact_tick_pixels": [round(value, 6) for value in target_pixels]})
 
     # All chains are interpreted before moving geometry. A wall's correspondence
-    # comes from its original pixel and the nearest observed tick across chains;
-    # a window-jamb chain cannot capture a wall moved by an earlier chain.
+    # comes from reciprocal nearest original wall/tick coordinates across chains;
+    # a window-jamb chain cannot capture a wall moved by an earlier chain, and
+    # one tick cannot pull multiple distinct wall coordinates onto itself.
     for axis, ticks in verified_ticks.items():
         if not ticks:
             continue
         (p0, w0), (p1, w1) = result[f"{axis}_anchors"]
         for tick in ticks:
             tick["target_pixel"] = round(p0 + (tick["world_m"] - w0) * (p1 - p0) / (w1 - w0), 12)
-        edges, edge_rejected = _snap_footprint(
+        _associate_tick_wall_coordinates(plan, axis=axis, ticks=ticks)
+        edges, edge_rejected, edge_associations = _snap_footprint(
             result, observed=plan, axis=axis, ticks=ticks, mpp=_axis_scale(result, axis))
-        walls, wall_rejected = _snap_partitions(
+        walls, wall_rejected, wall_associations = _snap_partitions(
             result, observed=plan, axis=axis, ticks=ticks, mpp=_axis_scale(result, axis))
         changes.extend([*edges, *walls])
         rejections.extend([*edge_rejected, *wall_rejected])
+        associations_not_applied.extend([*edge_associations, *wall_associations])
     for item in items:
         snapped = [row for row in changes if row["chain_id"] == item["chain_id"]]
         item.update(snapped_object_count=len(snapped),
@@ -593,9 +650,10 @@ def align_plan_to_dimensions(plan: Mapping[str, Any], *, grid_step_m: float | No
             "walls_snapped": len(changes),
             "partitions_snapped": sum(row["kind"] == "partition" for row in changes),
             "footprint_edges_snapped": sum(row["kind"] == "perimeter" for row in changes),
+            "wall_associations_not_applied": len(associations_not_applied),
             "rejected": len(rejections),
         },
-        "items": items,
+        "items": [*items, *associations_not_applied],
         "changes": changes,
         "rejections": rejections,
     }

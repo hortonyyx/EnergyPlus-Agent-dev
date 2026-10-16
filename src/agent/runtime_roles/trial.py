@@ -1244,7 +1244,8 @@ class PlanTrial:
             "original_plan_sha256": plan_hash,
             "image": self.image_name,
             "source_geometry_ready": ready and result.get("reading_geometry_ready") is not True,
-            **({key: result[key] for key in ("reading_geometry_ready", "reading_product_file", "reading_product_sha256")}
+            **({key: result[key] for key in ("reading_geometry_ready", "reading_product_file", "reading_product_sha256",
+                                           "wall_metadata_summary") if key in result}
                if result.get("reading_geometry_ready") else {}),
             "candidate": result.get("candidate"),
             "draft": plan_input.get("plan_file"),

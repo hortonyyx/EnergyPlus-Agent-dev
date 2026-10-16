@@ -24,6 +24,7 @@ def setup(tmp_path):
 
 def test_planar_reading_has_no_bim_or_fabricated_heights_and_survives_reload(tmp_path):
     plan, trial = setup(tmp_path)
+    plan.pop("wall_metadata")
     receipt = asyncio.run(trial.run(plan))
     assert receipt["status"] == "passed", receipt.get("reason")
     assert receipt["reading_geometry_ready"] and receipt["source_geometry_ready"] is False
@@ -43,6 +44,44 @@ def test_planar_reading_has_no_bim_or_fabricated_heights_and_survives_reload(tmp
     saved = submission.submit({"trial_id": "latest", "local_review": {"summary": "Offline fixture overlay inspected; no independent fidelity claim."}})
     assert saved["status"] == "accepted"
     assert "z_floor" not in submission.read()["artifact"]["plan"]
+
+
+@pytest.mark.parametrize("provide_local_thickness", [False, True])
+def test_same_trial_reports_wall_coverage_and_accepts_unknown_wall_note_without_new_reading(
+        tmp_path, provide_local_thickness):
+    plan, trial = setup(tmp_path)
+    if not provide_local_thickness:
+        plan.pop("wall_metadata")
+    result = asyncio.run(trial.call(plan))
+    assert not result["isError"] and len(trial.receipts) == 1
+    receipt = trial.receipts[0]
+    counts = result["structuredContent"]["wall_metadata_summary"]["counts"]
+    assert counts == {"total": 5, "supplied": 2 if provide_local_thickness else 0,
+                      "known": int(provide_local_thickness),
+                      "unknown": 4 if provide_local_thickness else 5,
+                      "defaulted_unknown": 3 if provide_local_thickness else 5}
+    assert receipt["wall_metadata_summary"] == result["structuredContent"]["wall_metadata_summary"]
+    product_path = tmp_path / receipt["reading_product_file"]
+    before = product_path.read_bytes()
+    product = json.loads(before)
+    known = [row for row in product["walls"] if row["thickness_m"] is not None]
+    assert len(known) == int(provide_local_thickness)
+    if known:
+        assert known[0]["thickness_m"] == .18 and known[0]["reference_side"] == "unknown"
+        assert known[0]["basis"] and known[0]["source_refs"]
+    submission = ReaderSubmission(role_id="plan_reader", image_name="plan.png", directory=tmp_path,
+                                  trial=trial, target=plan["floor_id"])
+    accepted = submission.submit({"trial_id": "latest", "local_review": {
+        "summary": "Offline fixture checked; unmeasured wall attributes remain unknown."},
+        "notes": [{"item": "wall_metadata", "kind": "unresolved",
+                   "basis": "Only the localized supplied observations are known; remaining thicknesses are unreadable."}]})
+    assert accepted["status"] == "accepted" and len(trial.receipts) == 1
+    saved = submission.read()
+    assert saved["validation"]["notes"][0]["item"] == "plan.wall_metadata"
+    assert saved["artifact"]["plan"] == trial.numeric_plan(receipt)
+    assert ("wall_metadata" in saved["artifact"]["plan"]) == provide_local_thickness
+    assert product_path.read_bytes() == before
+    assert not any(row["item"] == "plan.wall_metadata" for row in saved["artifact"]["evidence"])
 
 
 def test_planar_product_tamper_rejected_and_aperture_overlap_fails(tmp_path):

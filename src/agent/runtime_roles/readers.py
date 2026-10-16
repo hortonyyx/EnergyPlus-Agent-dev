@@ -482,6 +482,10 @@ class ReaderTools:
             raise ValueError(f"frozen reader catalog missing tools: {missing}")
         tools = [copy.deepcopy(by_name[name]) for name in wanted if name not in local]
         if self.role_id == "plan_reader":
+            reference = next(row for row in tools if row["name"] == "get_bim_reference")
+            reference["description"] += (
+                " For plan_partition, returns this reader's 2D plan contract, already included in the "
+                "initial guide; request it only when a contract detail needs clarification.")
             from .plan_views import PLAN_VIEWS_TOOL
             tools.append(copy.deepcopy(PLAN_VIEWS_TOOL))
             tools.append({"name": "read_plan_draft", "description": (
@@ -503,7 +507,8 @@ class ReaderTools:
                     "Validate, regularize and render a 2D plan reading and original overlay. No source BIM is made. "
                     "Send one complete plan with reading_type='plan', floor_id, x_anchors, y_anchors, basis, "
                     "footprint_pixels, partitions, openings, space_seeds, assumptions and unresolved. Optional "
-                    "wall_metadata records thickness_m or null, reference_side and evidence for each observed wall. "
+                    "wall_metadata records locally readable thickness_m and evidence even if reference_side "
+                    "is unknown; unreadable thickness stays null. Its coverage summary returns in this trial. "
                     "Omit unobserved z_floor/ceiling_height/opening z; assembly resolves them. "
                     "dimension_chains rows use id, axis, segments_mm, tick_pixels and source_refs; total_mm and "
                     "start_world_m are optional. tick_pixels has one more item than segments_mm. Code accumulates "
@@ -680,7 +685,11 @@ class ReaderTools:
             if name == "pixel_profile":
                 delegated_name = "view_pixel_profile"
                 delegated_arguments["include_image"] = False
-            if name == "view_plan_blocks":
+            if (self.role_id == "plan_reader" and name == "get_bim_reference"
+                    and arguments.get("topic") == "plan_partition"):
+                from .guidance import PLAN_READER_REFERENCE
+                result = {"content": [{"type": "text", "text": PLAN_READER_REFERENCE}], "isError": False}
+            elif name == "view_plan_blocks":
                 from .plan_views import view_plan_blocks
                 result = await view_plan_blocks(self.frozen, self.image_name)
             else:

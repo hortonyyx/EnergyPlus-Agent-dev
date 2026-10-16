@@ -2,10 +2,12 @@
 
 import asyncio
 import copy
+import hashlib
 import json
 
 import jsonschema
 import pytest
+from PIL import Image
 
 from src.agent.geometry.plan_partition import compile_plan_partition
 from src.agent.runtime_roles.guidance import PLAN_READER_GUIDANCE
@@ -29,8 +31,7 @@ def test_reference_example_is_complete_compilable_and_present_in_reader_guidance
         assert stale not in PLAN_READER_GUIDANCE
     normalized_guidance = " ".join(PLAN_READER_GUIDANCE.split())
     assert "send one complete plan to trial_plan_bim so code can place it" in normalized_guidance
-    assert "dimension chains, shared endpoints and openings on hosts are resolved by code" in normalized_guidance
-    assert "Use approximate original pixels for ALL actual walls, openings and room seeds" in normalized_guidance
+    assert "Use observed original pixels for ALL actual walls, openings and room seeds" in normalized_guidance
     assert "Original annotations remain evidence" in normalized_guidance
 
 
@@ -39,7 +40,21 @@ def test_reader_example_is_the_reference_plan_at_image_scale():
     proposal, _ = compile_plan_partition(READER_PLAN_EXAMPLE, image_size=(600, 420), image_name="plan.png")
     assert proposal
     reference, _ = compile_plan_partition(PLAN_EXAMPLE, image_size=(12, 8), image_name="plan.png")
-    assert proposal["geometry"] == reference["geometry"]
+    actual, expected = proposal["geometry"], reference["geometry"]
+    assert actual["footprint_x"] == expected["footprint_x"]
+    assert actual["footprint_y"] == expected["footprint_y"]
+    for floor, old in zip(actual["floors"], expected["floors"], strict=True):
+        assert floor["name"] == old["name"]
+        assert "z_floor" not in floor and "ceiling_height" not in floor
+        for cell, prior in zip(floor["cells"], old["cells"], strict=True):
+            assert {key: cell[key] for key in ("id", "polygon", "x", "y", "role")} == {
+                key: prior[key] for key in ("id", "polygon", "x", "y", "role")}
+    for collection in ("windows", "openings"):
+        assert [{k: v for k, v in row.items() if k not in {"z", "source_refs"}}
+                for row in actual[collection]] == [
+                    {k: v for k, v in row.items() if k not in {"z", "source_refs"}}
+                    for row in expected[collection]]
+        assert all("z" not in row for row in actual[collection])
     assert json.dumps(READER_PLAN_EXAMPLE, ensure_ascii=False, separators=(",", ":")) in PLAN_READER_GUIDANCE
     assert all(value > 20 for row in READER_PLAN_EXAMPLE["footprint_pixels"] for value in row)
 
@@ -67,7 +82,7 @@ def test_world_metre_points_and_invented_room_uses_are_named_before_compiling():
     assert plan_format_errors(pixels) == []
 
 
-def test_all_rows_and_nested_formats_reported_in_one_response_without_compiler_call():
+def test_all_rows_and_nested_formats_reported_in_one_response_without_compiler_call(tmp_path):
     async def scenario():
         value = plan()
         del value["ceiling_height"]
@@ -77,15 +92,21 @@ def test_all_rows_and_nested_formats_reported_in_one_response_without_compiler_c
         value["space_seeds"] = [{"id": "S1", "seed": [1, 2]}, {"id": "S1", "point": [1, "x"]}]
         value["openings"] *= 2
         value["openings"][0]["room"] = "left"
+        (tmp_path / "images").mkdir()
+        image = tmp_path / "images/plan.png"
+        Image.new("RGB", (120, 120), "white").save(image)
+        (tmp_path / "inputs.json").write_text(json.dumps({"images": {"plan.png": {
+            "size": [120, 120], "sha256": hashlib.sha256(image.read_bytes()).hexdigest()}}}))
         tools = Tools()
-        trial = PlanTrial(tools, image_name="plan.png")
+        trial = PlanTrial(tools, image_name="plan.png", workspace=tmp_path)
         reader = ReaderTools(Frozen(), role_id="plan_reader", image_name="plan.png", trial=trial)
         envelope = await reader.call_tool("trial_plan_bim", {"plan": value})
         receipt = envelope["structuredContent"]
         assert receipt["error_type"] == "plan_format" and tools.calls == []
         assert receipt["repair_hint"]["example"] == READER_PLAN_EXAMPLE
         errors = receipt["format_errors"]
-        assert any(row["path"] == "plan" and "ceiling_height" in row["message"] for row in errors)
+        assert any(row["path"] == "plan" and "units" in row["message"] for row in errors)
+        assert not any("ceiling_height" in row["message"] for row in errors)
         for collection in ("partitions", "space_seeds", "openings"):
             for index in (0, 1):
                 assert any(row["path"].startswith(f"plan.{collection}[{index}]") for row in errors)

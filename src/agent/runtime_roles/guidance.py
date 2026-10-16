@@ -29,8 +29,8 @@ size and an ORIGINAL-pixel grid: do not call inputs or reread the whole image by
 
 _PLAN_FIRST_DRAFT = """Read the supplied whole-image grid. Enlarge only regions whose dimensions or marks are
 unreadable; view_plan_blocks is optional, not a required pass. In the same pass, inventory
-the complete footprint, partitions, rooms, doors/windows and all readable exterior and
-internal dimension chains. Do not profile each line. As soon as the full structure is
+the complete footprint, partitions, rooms, doors/windows, locally readable wall thicknesses,
+and exterior/internal dimension chains. Do not profile each line. As soon as the full structure is
 represented, send one complete plan to trial_plan_bim so code can place it and expose only
 the remaining local conflicts. This produces a 2D reading, clean plan and original overlay,
 not source BIM. Source BIM is built only after assembly resolves cross-view geometry.
@@ -63,8 +63,14 @@ wall_metadata rows: target=footprint:0 (original edge index) or partition:<id>, 
 (positive metres or null), reference_side=centerline/negative_face/positive_face/unknown,
 evidence_status=observed/inferred/unknown, basis, source_refs. Negative/positive means world
 -X/+X for vertical walls, -Y/+Y for horizontal walls, independent of vertex order. Read
-thickness from annotated dimensions or visible paired wall faces and state that basis;
-unknown stays null. Metadata never moves a wall or establishes cross-floor identity.
+thickness from annotated dimensions or visible paired wall faces and state that local basis.
+Thickness and reference_side are independent: retain a readable thickness even when its
+reference_side is unknown. Do not wait for every wall to be known, spread one label to
+unrelated walls, or discard local readings because other walls are unclear. Record these
+in the same reading pass; no separate thickness survey is required. Truly unreadable
+thickness stays null, and omitted walls are recorded as unknown. The trial's
+wall_metadata_summary distinguishes supplied readings from default unknowns; it does not
+certify complete measurement. Metadata never moves a wall or establishes cross-floor identity.
 Failed geometry remains a saved declaration, not an accepted reading. Use read_plan_draft()
 to see editability, the current operations base and the last passed plan separately.
 Read field plus optional object_id for one object; field="plan" browses the saved
@@ -95,6 +101,8 @@ Never resend plan/evidence: generated boxes locate declarations, not prove obser
 anchor bands do not locate dimensions. Optional notes={item,kind,basis}, kind=
 assumption/inferred/unresolved. item may be the exact plan path or an unambiguous declared
 object ID/collection alias; ambiguous and unknown items are rejected, never discarded.
+wall_metadata is also addressable when its omitted values became unknown in the 2D product;
+a note does not add a thickness observation or change the passed plan.
 unresolved lists delivery questions.
 wall_metadata carries per-wall thickness and reference side. Legacy wall_reference defaults
 (perimeter outer_face, partitions centerline) are broad conventions only, not measured thickness; no geometry move.
@@ -105,15 +113,17 @@ basis and matching world_north_toward/world_east_toward; overlays/instructions c
 it. Normal orientation needs none. Reject failed/stale trials; retry changed plans before
 submission. Correct named rejections; acceptance ends the task automatically."""
 
+# The public plan_partition reference and initial reader prompt share this
+# contract. Source-BIM callers continue to use the separate compiler reference.
+PLAN_READER_REFERENCE = "\n\n".join((_PLAN_CORE, _PLAN_FIRST_DRAFT, _ARTIFACT_SCHEMA))
+
 PLAN_READER_GUIDANCE = "\n\n".join((
     "Delivery requires local_review.summary describing the actual saved plan/overlay check. Use submit_plan_reading only after this check; acceptance ends the reader task automatically. Keep unresolved evidence explicitly. Do not invent separators to make room labels or use zones convenient.",
     _SHARED_READER_SCOPE,
-    _PLAN_CORE,
-    _PLAN_FIRST_DRAFT,
+    PLAN_READER_REFERENCE,
     _PLAN_REVIEW,
     room_types_reference(),
     "Allowed tools: " + ", ".join(READER_TOOL_NAMES["plan_reader"]) + ".",
-    _ARTIFACT_SCHEMA,
 ))
 
 

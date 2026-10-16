@@ -115,6 +115,16 @@ def build_reading(plan, *, workspace, image_name, number):
         image_sha256=hashlib.sha256(raw_image).hexdigest(), plan_sha256=hashlib.sha256(_bytes(plan)).hexdigest())
     _opening_overlaps(plan)
     walls = validate_wall_metadata(plan)
+    supplied_wall_targets = {row["target"] for row in plan.get("wall_metadata", [])}
+    known_wall_count = sum(row["thickness_m"] is not None for row in walls)
+    wall_summary = {
+        "counts": {"total": len(walls), "supplied": len(supplied_wall_targets),
+                   "known": known_wall_count, "unknown": len(walls) - known_wall_count,
+                   "defaulted_unknown": sum(row["target"] not in supplied_wall_targets for row in walls)},
+        "scope": "Wall metadata for this floor; counts do not establish drawing completeness.",
+        "note": "Unknown includes omitted readings. Preserve locally readable thickness with its basis even "
+                "when the reference side or other walls are unknown; keep genuinely unreadable values null.",
+    }
     product = {"schema": "plan_reading_v1", "image": image_name,
                "image_sha256": hashlib.sha256(raw_image).hexdigest(),
                "geometry": proposal["geometry"], "mapping": metadata, "walls": walls,
@@ -144,6 +154,7 @@ def build_reading(plan, *, workspace, image_name, number):
                              "submitted_plan_file": plan_path.relative_to(workspace).as_posix(),
                              "image": image_name, "image_sha256": product["image_sha256"]},
               "source_plan_views": views,
+              "wall_metadata_summary": wall_summary,
               "building_precision": {"status": "pass", "scope": "2D topology, hosts, grid; no height test",
                                      "counts": {"spaces": len(metadata["space_mapping"]),
                                                 "openings": len(metadata["opening_hosts"])}},
