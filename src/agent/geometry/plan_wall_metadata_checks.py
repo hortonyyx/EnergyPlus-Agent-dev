@@ -1,4 +1,4 @@
-"""Located ink hints for a declared wall width/face; never a wall recognizer.
+"""Located ink hints for a declared wall reference/width/face; never a wall recognizer.
 
 Only two unambiguous, persistent parallel strokes are compared. Sparse, clipped,
 unknown and busy neighborhoods are left for the reader. No geometry is changed
@@ -38,15 +38,13 @@ def append_wall_metadata_checks(report, original, plan, metadata):
         thickness, side = wall["thickness_m"], wall["reference_side"]
         for a, b in wall["segments_m"]:
             coverage["unresolved_or_ambiguous_segments"] += 1
-            if thickness is None or side == "unknown":
-                continue
             normal = 0 if abs(a[0] - b[0]) < 1e-7 else 1
             along = 1 - normal
             position = (a[normal] + b[normal]) / 2
             lo, hi = sorted((pixel(a[along], along), pixel(b[along], along)))
             at = pixel(position, normal)
             mpp, along_mpp = abs(slopes[normal]), abs(slopes[along])
-            radius = max(.45, thickness + .1) / mpp
+            radius = max(.45, (thickness or 0) + .1) / mpp
             cross_lo, cross_hi = int(np.floor(at - radius)), int(np.ceil(at + radius))
             cross_size, along_size = (mask.shape[1], mask.shape[0]) if normal == 0 else mask.shape
             # Cropping must not turn unavailable pixels into negative evidence.
@@ -71,31 +69,41 @@ def append_wall_metadata_checks(report, original, plan, metadata):
             lines = [(s + e) / 2 + cross_lo for s, e in strokes]
             if (lines[1] - lines[0]) < 2:
                 continue
-            offsets = {"centerline": (-thickness / 2, thickness / 2),
-                       "negative_face": (0, thickness), "positive_face": (-thickness, 0)}[side]
-            faces = sorted(pixel(position + offset, normal) for offset in offsets)
-            residual = [abs(a - b) * mpp for a, b in zip(faces, lines)]
+            # Unknown thickness or side cannot define two declared faces, but
+            # the reference still belongs within the observed pair. Unknown
+            # metadata is not itself an error and is never filled from ink.
+            offsets = None if side == "unknown" or thickness is None else {
+                "centerline": (-thickness / 2, thickness / 2),
+                "negative_face": (0, thickness), "positive_face": (-thickness, 0)}[side]
+            faces = None if offsets is None else sorted(pixel(position + offset, normal) for offset in offsets)
+            outside = max(lines[0] - at, at - lines[1], 0) * mpp
+            residual = None if faces is None else [abs(a - b) * mpp for a, b in zip(faces, lines)]
             spacing = (lines[1] - lines[0]) * mpp
             coverage["compared_segments"] += 1
             coverage["unresolved_or_ambiguous_segments"] -= 1
             # Position allows the already configured 10 cm coordinate grid and
             # raster sampling. Width is an attribute, not a quantized coordinate.
-            if max(residual) <= max(.06, 2 * mpp) and abs(spacing - thickness) <= max(.05, 2 * mpp):
+            position_error = outside if residual is None else max(residual)
+            width_agrees = thickness is None or abs(spacing - thickness) <= max(.05, 2 * mpp)
+            if position_error <= max(.06, 2 * mpp) and width_agrees:
                 continue
             box = ([cross_lo, int(lo), cross_hi, int(hi)] if normal == 0
                    else [int(lo), cross_lo, int(hi), cross_hi])
             found.append({"type": "wall_metadata_ink_mismatch", "wall_target": wall["target"],
                           "axis": "x" if normal == 0 else "y", "look_box": box,
-                          "declared_faces_px": [round(p, 3) for p in faces],
+                          "declared_faces_px": None if faces is None else [round(p, 3) for p in faces],
+                          "declared_reference_px": round(at, 3), "reference_side": side,
+                          "reference_outside_ink_m": round(outside, 4),
                           "nearby_parallel_ink_px": [round(p, 3) for p in lines],
-                          "face_residual_m": [round(p, 4) for p in residual],
+                          "face_residual_m": None if residual is None else [round(p, 4) for p in residual],
                           "declared_thickness_m": thickness, "ink_spacing_m": round(spacing, 4),
-                          "check": "The declared wall faces/width differ from two persistent nearby ink lines. "
+                          "check": "The declared wall reference, faces or width differ from two persistent nearby ink lines. "
                                    "Check the original pair, selected reference side and thickness basis; "
                                    "these strokes may be other drawing features. Do not move walls automatically."})
     result["items"] = [*result.get("items", []), *found]
     result["total"] = len(result["items"])
     result["counts"] = dict(Counter(row["type"] for row in result["items"]))
-    result["scope"] = result.get("scope", "") + " Also compares known wall thickness/side declarations " \
-                      "against unambiguous local parallel ink; this adds hints, not wall identification."
+    result["scope"] = result.get("scope", "") + " Also compares declared wall references and known thickness/side " \
+                      "against unambiguous local parallel ink; unknown metadata is not an error or inferred here. " \
+                      "This adds hints, not wall identification."
     return result

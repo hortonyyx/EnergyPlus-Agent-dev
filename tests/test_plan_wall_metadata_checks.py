@@ -74,4 +74,35 @@ def test_unknown_absent_ambiguous_or_clipped_ink_is_not_negative_evidence(unknow
         _, metadata = compile_plan_partition(plan, image_size=image.size, image_name="plan.png")
     result = append_wall_metadata_checks(report, image, plan, metadata)
     assert result["total"] == 0
-    assert result["coverage"]["wall_metadata"]["compared_segments"] == 0
+    assert result["coverage"]["wall_metadata"]["compared_segments"] == (1 if unknown in {"side", "thickness"} else 0)
+
+
+@pytest.mark.parametrize("mirror", [False, True])
+@pytest.mark.parametrize("thickness", [None, .24])
+def test_unknown_side_still_reports_reference_outside_pair_without_guessing_side(mirror, thickness):
+    plan, image, metadata, report = scene(side="unknown", thickness=thickness, mirror=mirror)
+    # Keep a real orthogonal footprint but read this wall 20 cm past its
+    # outer face. No declared side is available to construct wall faces.
+    plan["footprint_pixels"][0][1] = plan["footprint_pixels"][1][1] = 80
+    _, metadata = compile_plan_partition(plan, image_size=image.size, image_name="plan.png")
+    before = copy.deepcopy((plan, metadata, report)); pixels = image.tobytes()
+    result = append_wall_metadata_checks(report, image, plan, metadata)
+    assert len(result["items"]) == 1
+    issue = result["items"][0]
+    assert issue["reference_side"] == "unknown"
+    assert issue["declared_faces_px"] is None and issue["face_residual_m"] is None
+    assert issue["declared_reference_px"] == 80
+    assert issue["reference_outside_ink_m"] == .2
+    assert issue["nearby_parallel_ink_px"] == [100, 124]
+    assert issue["declared_thickness_m"] == thickness
+    assert (plan, metadata, report) == before and image.tobytes() == pixels
+
+
+def test_unknown_side_still_checks_known_width_without_guessing_faces():
+    plan, image, metadata, report = scene(side="unknown", thickness=.72)
+    result = append_wall_metadata_checks(report, image, plan, metadata)
+    assert len(result["items"]) == 1
+    issue = result["items"][0]
+    assert issue["declared_faces_px"] is None
+    assert issue["reference_outside_ink_m"] == 0
+    assert issue["declared_thickness_m"] == .72 and issue["ink_spacing_m"] == .24

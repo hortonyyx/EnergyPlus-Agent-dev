@@ -108,6 +108,38 @@ class ToolClient(Protocol):
     async def call_tool(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]: ...
 
 
+class FrozenBimCatalog:
+    """Non-executable parent catalog for a standalone reader unit.
+
+    Uses the same definitions as the stdio server, but owns no transport. The
+    child still opens its isolated readonly MCP through ``task_session``.
+    """
+
+    def __init__(self, run_directory: Path, *, repository_root: Path):
+        root = Path(repository_root).resolve()
+        try:
+            agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+            raise ToolCatalogMismatch(str(error)) from error
+        from scripts.tool_scripts import run_bim_agent
+        if Path(run_bim_agent.__file__).resolve() != root / "scripts/tool_scripts/run_bim_agent.py":
+            raise ToolCatalogMismatch("parent catalog builder belongs to a different repository")
+        self._server = run_bim_agent.build_tool_server(Path(run_directory).resolve())
+
+    @property
+    def definition_source(self) -> dict[str, Any]:
+        return {"kind": "in_process_definition_factory",
+                "factory": "scripts.tool_scripts.run_bim_agent.build_tool_server",
+                "stdio_server_started": False, "tool_execution_allowed": False}
+
+    async def list_tools(self) -> list[dict[str, Any]]:
+        return [tool.model_dump(mode="json", exclude_none=True)
+                for tool in await self._server.list_tools()]
+
+    async def call_tool(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+        raise ToolAccessDenied("reader_unit parent catalog cannot execute tools")
+
+
 def frozen_bim_client(
     run_directory: Path,
     readonly: bool = False,
@@ -540,8 +572,9 @@ def write_frozen_materials(output_directory: Path, *, repository_root: Path) -> 
     return material
 
 
-def write_frozen_tool_catalog(output_directory: Path, tools: list[dict[str, Any]], *, readonly: bool) -> dict[str, Any]:
-    """Persist exact live definitions plus separate policy and byte evidence."""
+def write_frozen_tool_catalog(output_directory: Path, tools: list[dict[str, Any]], *, readonly: bool,
+                              definition_source: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    """Persist exact definitions plus separate policy and byte evidence."""
 
     mode = validate_frozen_catalog(tools, readonly=readonly)
     version = agent_version_record(Path(__file__).resolve().parents[2], verify=True)
@@ -569,6 +602,8 @@ def write_frozen_tool_catalog(output_directory: Path, tools: list[dict[str, Any]
         "tools": definitions,
         "policy_by_name": policy,
     }
+    if definition_source is not None:
+        catalog["definition_source"] = json.loads(json.dumps(definition_source, allow_nan=False))
     target_names = {
         "coordinator": "coordinator_tools.json",
         "readonly": "local_observer_tools.json",
@@ -594,6 +629,8 @@ def write_frozen_tool_catalog(output_directory: Path, tools: list[dict[str, Any]
         "tool_count": receipt["tool_count"],
         "definitions_sha256": receipt["definitions_sha256"],
     }
+    if definition_source is not None:
+        manifest["catalogs"][catalog["server_mode"]]["definition_source"] = catalog["definition_source"]
     manifest_path.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )

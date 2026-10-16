@@ -11,7 +11,7 @@ from pathlib import Path
 
 from src.agent.runtime_delivery import completed_building_handoff
 from src.agent.runtime_entry import ROOT, parser as single_parser, prepare_inputs, publish_tool_budget
-from src.agent.runtime_tools import FrozenBimTools, coordinator_role, frozen_bim_client, write_frozen_materials, write_frozen_tool_catalog
+from src.agent.runtime_tools import FrozenBimCatalog, FrozenBimTools, coordinator_role, frozen_bim_client, write_frozen_materials, write_frozen_tool_catalog
 from src.agent_runtime.adapter import ScriptedAdapter
 from .context_policy import context_policy_from_effective, effective_role_context
 from src.agent_runtime.connections import resolve_connection, validate_connection_model
@@ -178,7 +178,10 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
         if not args.resume:
             store.write_json("role_configuration.json", configuration)
         async with AsyncExitStack() as stack:
-            client = await stack.enter_async_context(frozen_bim_client(run_directory=run, repository_root=ROOT))
+            if unit is not None:
+                client = FrozenBimCatalog(run, repository_root=ROOT)
+            else:
+                client = await stack.enter_async_context(frozen_bim_client(run_directory=run, repository_root=ROOT))
             base_role = coordinator_role(limits.ledger_limit())
             frozen = FrozenBimTools(client, base_role, run_directory=run)
             tools = RoleSession(store=store, frozen=frozen, routes=routes, adapter_factory=factory,
@@ -207,6 +210,8 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
                 for tool in catalog)})
             route = {**connection_routes["coordinator"], "model": primary["model"],
                      "context": coordinator_context.model_dump(mode="json"), "roles": configuration}
+            if unit is not None:
+                route["parent_catalog_source"] = client.definition_source
             if continued_readers is not None:
                 route["reader_continuation"] = {"manifest_sha256": hashlib.sha256(
                     (output / "reader_continuation.json").read_bytes()).hexdigest()}
@@ -226,7 +231,8 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
             else:
                 store.write_json("versions.json", versions.model_dump(mode="json"))
                 write_frozen_materials(output / "frozen", repository_root=ROOT)
-                write_frozen_tool_catalog(output / "frozen", await client.list_tools(), readonly=False)
+                write_frozen_tool_catalog(output / "frozen", await client.list_tools(), readonly=False,
+                    **({"definition_source": client.definition_source} if unit is not None else {}))
             if unit is not None:
                 if args.resume and json.loads((output / "versions.json").read_bytes()) != versions.model_dump(mode="json"):
                     raise ValueError("reader unit implementation changed; refusing recovery")

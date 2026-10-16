@@ -2413,12 +2413,8 @@ class Toolkit:
         return selection
 
 
-def serve(run: Path, readonly=False, *, enabled_only=False):
-    if os.name == "nt":
-        # SciPy's Fortran DLL initialization can wait on CRT stdio locks.
-        # Import before MCP starts its blocking stdin reader, not during the
-        # first geometry call while that reader already owns a stdio lock.
-        import scipy.signal  # noqa: F401
+def build_tool_server(run: Path, readonly=False, *, enabled_only=False):
+    """Construct the sole tool catalog without starting transport or executing tools."""
     from mcp.server.fastmcp import Image
     from scripts.tool_scripts.bim_agent_feedback import FeedbackMCP
     toolkit = Toolkit(run, readonly)
@@ -3331,6 +3327,16 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
         for name in tuple(server._tool_manager._tools):
             if not filter_tool_catalog([{"name": name}], **capabilities):
                 server.remove_tool(name)
+    return server
+
+
+def serve(run: Path, readonly=False, *, enabled_only=False):
+    if os.name == "nt":
+        # SciPy's Fortran DLL initialization can wait on CRT stdio locks.
+        # Import before MCP starts its blocking stdin reader, not during the
+        # first geometry call while that reader already owns a stdio lock.
+        import scipy.signal  # noqa: F401
+    server = build_tool_server(run, readonly=readonly, enabled_only=enabled_only)
     server.run()
 
 
