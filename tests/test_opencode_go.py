@@ -1,7 +1,9 @@
 """Go subscription isolation and real runtime protocol/tool-image round trips."""
 import asyncio
+import copy
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -11,6 +13,7 @@ from src.agent_runtime.loop import RunLimits
 from src.agent_runtime.failures import ModelServiceError
 from src.agent_runtime.opencode_go import BASE_URL, HttpGoAdapter, conversation_id, model_contract
 from src.agent_runtime.providers import provider_parameters, validate_provider_model
+from src.agent_runtime.versions import run_model_configuration
 from test_agent_runtime import MESSAGES, response, runtime
 
 
@@ -188,3 +191,62 @@ def test_go_external_coordinator_is_rejected_before_credentials(tmp_path):
     path.write_text(json.dumps(configuration(selected)))
     with pytest.raises(ValueError,match='single_model and role_division only'):
         load_configuration(path)
+
+
+@pytest.mark.parametrize('mixed_providers', [False, True])
+def test_role_version_records_use_each_models_own_parameter_contract(mixed_providers):
+    configured = {
+        'coordinator': {'provider': 'opencode-go', 'model': 'glm-5.3-flash',
+                        'output_tokens': 32000, 'reasoning_effort': 'high', 'temperature': .3},
+        'plan_reader': {'route_id': 'opencode-go', 'model': 'claude-haiku-5-5',
+                        'output_tokens': 40000, 'reasoning_effort': 'medium', 'enable_thinking': None},
+        'elevation_reader': {'provider': 'opencode-go', 'model': 'gpt-6-luna',
+                             'output_tokens': 48000, 'reasoning_effort': 'low'},
+    }
+    expected = {
+        'coordinator': {'max_tokens': 32000, 'reasoning_effort': 'high', 'temperature': .3},
+        'plan_reader': {'max_tokens': 40000, 'output_config': {'effort': 'medium'}},
+        'elevation_reader': {'max_tokens': 48000, 'reasoning_effort': 'low'},
+    }
+    if mixed_providers:
+        configured['coordinator'] = {'provider': 'chatgpt-subscription', 'model': 'gpt-6-sol',
+                                     'output_tokens': 32000, 'reasoning_effort': 'high'}
+        configured['elevation_reader'] = {'provider': 'glm-subscription', 'model': 'glm-5.3-flash',
+                                          'output_tokens': 48000, 'reasoning_effort': 'max'}
+        expected['coordinator'] = {'max_tokens': 32000, 'reasoning_effort': 'high'}
+        expected['elevation_reader'] = {'max_tokens': 48000, 'reasoning_effort': 'max'}
+    route = {'route_id': configured['coordinator']['provider'],
+             'model': configured['coordinator']['model'], 'roles': {'roles': configured}}
+    original = copy.deepcopy(route)
+    mode, recorded = run_model_configuration(SimpleNamespace(is_root_task=True),
+        route=route, parameters=expected['coordinator'])
+    assert mode == 'role_division' and set(recorded) == set(configured)
+    for name, config in configured.items():
+        assert recorded[name] == {
+            'route_id': config.get('route_id', config.get('provider')), 'model': config['model'],
+            'reasoning_effort': config['reasoning_effort'], 'output_tokens': config['output_tokens'],
+            'parameters': expected[name],
+        }
+    assert route == original
+
+
+@pytest.mark.parametrize('provider, model, options, expected', [
+    ('chatgpt-subscription', 'gpt-6-sol', {'reasoning_effort': 'high'},
+     {'max_tokens': 32000, 'reasoning_effort': 'high'}),
+    ('glm-subscription', 'glm-5.3-flash', {'reasoning_effort': 'medium', 'temperature': .2},
+     {'max_tokens': 32000, 'reasoning_effort': 'medium', 'temperature': .2}),
+    ('glm-subscription-anthropic', 'glm-5.3-flash', {'reasoning_effort': 'low'},
+     {'max_tokens': 32000, 'thinking': {'type': 'adaptive', 'display': 'omitted'},
+      'output_config': {'effort': 'low'},
+      'context_management': {'edits': [{'type': 'clear_thinking_20251015', 'keep': 'all'}]}}),
+    ('paratera', 'Qwen3.8-27B', {'temperature': .7, 'enable_thinking': False},
+     {'max_tokens': 32000, 'temperature': .7, 'enable_thinking': False}),
+])
+def test_role_version_records_preserve_non_go_parameters(provider, model, options, expected):
+    config = {'provider': provider, 'model': model, 'output_tokens': 32000, **options}
+    mode, recorded = run_model_configuration(SimpleNamespace(is_root_task=True),
+        route={'route_id': provider, 'model': model, 'roles': {'roles': {'plan_reader': config}}},
+        parameters=expected)
+    assert mode == 'role_division'
+    assert recorded['plan_reader'] == {'route_id': provider, 'model': model,
+        'output_tokens': 32000, 'reasoning_effort': options.get('reasoning_effort'), 'parameters': expected}

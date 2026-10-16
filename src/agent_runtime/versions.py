@@ -73,7 +73,7 @@ def run_model_configuration(store, *, route, parameters):
             from .providers import LIVE_PROVIDERS, provider_parameters
             provider = config.get("route_id", config.get("provider"))
             if provider in LIVE_PROVIDERS:
-                decoding = provider_parameters(provider, output_tokens=config["output_tokens"],
+                decoding = provider_parameters(provider, model=config["model"], output_tokens=config["output_tokens"],
                     reasoning_effort=config.get("reasoning_effort"), temperature=config.get("temperature"),
                     thinking=True if config.get("enable_thinking") is None else config["enable_thinking"])
             else:
