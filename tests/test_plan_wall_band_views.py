@@ -148,6 +148,30 @@ def test_overlay_preserves_visible_original_ink_under_declared_band():
     assert original.getpixel(pixel([0, 2])) == (20, 20, 20)
 
 
+def test_overlay_grays_original_colors_but_preserves_adopted_marks_and_clean_view():
+    plan = reading()
+    plan["openings"] = [
+        {"id": "W", "kind": "window", "p1": list(pixel([-2, 4])), "p2": list(pixel([-1, 4]))},
+        {"id": "D", "kind": "door", "p1": list(pixel([0, -2])), "p2": list(pixel([0, -1]))},
+    ]
+    _, metadata = compile_reading(plan)
+    original = Image.new("RGB", SIZE, "black")
+    draw = ImageDraw.Draw(original)
+    draw.line([(130, 365), (170, 365)], fill=(0, 255, 255), width=1)
+    draw.line([(216, 130), (216, 170)], fill=(255, 0, 255), width=1)
+    before = copy.deepcopy((plan, metadata)), original.tobytes()
+    overlay, clean = _views(plan, metadata, original)
+    for point in ((150, 365), (216, 150)):
+        expected = original.convert("L").getpixel(point)
+        assert overlay.getpixel(point) == (expected, expected, expected)
+    # Adopted openings retain their distinct colors at the unchanged pixels.
+    assert overlay.getpixel((150, 370)) == (10, 167, 151)
+    assert overlay.getpixel((210, 150)) == (214, 83, 32)
+    assert overlay.size == clean.size == original.size
+    assert clean.tobytes() == _views(plan, metadata, Image.new("RGB", SIZE, WHITE))[1].tobytes()
+    assert (plan, metadata) == before[0] and original.tobytes() == before[1]
+
+
 def test_saved_views_and_rendering_summary_leave_reading_data_and_source_image_unchanged(tmp_path):
     plan = reading()
     before = copy.deepcopy(plan)

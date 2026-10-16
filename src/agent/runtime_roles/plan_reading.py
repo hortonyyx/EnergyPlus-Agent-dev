@@ -122,7 +122,8 @@ def _wall_view_geometry(plan, metadata):
         "walls_with_known_faces": known_faces,
         "walls_shown_as_lines": len(reading["walls"]) - known_faces,
         "solid_band_segments": len(bands),
-        "note": "Bands show declared thickness and reference side, not code-measured wall faces. "
+        "note": "Overlay key: gray is the original drawing; colors are adopted results. "
+                "Bands show declared thickness and reference side, not code-measured wall faces. "
                 "Unknown thickness or side stays a single line; hosted opening spans are left clear.",
     }}
 
@@ -130,7 +131,7 @@ def _wall_view_geometry(plan, metadata):
 def _views(plan, metadata, original, *, wall_views=None):
     """Render adopted coordinates through the original calibration, without refitting."""
     wall_views = wall_views if wall_views is not None else _wall_view_geometry(plan, metadata)
-    pictures = [original.convert("RGB"), Image.new("RGB", original.size, "white")]
+    pictures = [original.convert("L").convert("RGB"), Image.new("RGB", original.size, "white")]
     for index, picture in enumerate(pictures):
         if index:
             bands = ImageDraw.Draw(picture)

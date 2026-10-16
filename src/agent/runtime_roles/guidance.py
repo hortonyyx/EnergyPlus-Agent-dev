@@ -97,7 +97,10 @@ Full plans remain accepted. Audit actual changes; cross-task rework preserves un
 objects. Notes may change freely but cannot authorize geometry or room-use changes.""".format(
     example=json.dumps(READER_PLAN_EXAMPLE, ensure_ascii=False, separators=(",", ":")))
 
-_PLAN_REVIEW = """Review only trial drawing_differences, hard-rule failures and the saved overlay. Rework missing,
+_PLAN_REVIEW = """Review trial drawing_differences, hard-rule failures and the saved overlay. In that overlay,
+gray is original ink and color is adopted geometry. Compare the opening sequence and spans
+on each wall with the original symbols, including exterior windows outside the ink report's
+scope; a zero-item report or matching count does not establish their locations. Rework missing,
 extra or misconnected rooms/walls/openings and deviations over 0.30 m. A wrong wall face or
 opening endpoint still needs correction below 0.30 m; that is not a quantization tail.
 Keep adopted 0.1 m values for finer tails only when the correct physical feature was read;
