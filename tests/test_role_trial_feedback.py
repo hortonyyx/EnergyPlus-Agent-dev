@@ -526,6 +526,76 @@ def test_draft_reference_keeps_custom_tool_and_exact_draft_identity():
         "draft_id": "draft_001", "field": "plan:/openings"}}
 
 
+def _opening_differences(count):
+    # Synthetic geometry with the observed report shape, not a case answer.
+    return [{"type": "opening_offset_from_gap", "opening": f"opening-{i}",
+             "divider": f"wall-{i}", "end_offsets_m": [-0.24, -0.16],
+             "declared": {"axis": "horizontal", "y_px": 500, "x_px": [520, 560],
+                          "y_m": 8.0, "x_m": [5.2, 6.0]},
+             "gap": {"axis": "horizontal", "y_px": 500, "x_px": [532, 568],
+                     "y_m": 8.0, "x_m": [5.44, 6.16]},
+             "look_box": [480, 460, 600, 540],
+             "check": "Compare the declared opening endpoints with the overlapping inkless stretch."}
+            for i in range(count)]
+
+
+def test_floor_difference_list_keeps_offsets_without_per_opening_reads(tmp_path):
+    complete, image, receipt_path, _ = _receipt(tmp_path, passed=True)
+    complete["trial_id"] = "trial_001"
+    rows = _opening_differences(17)
+    assert 350 < len(json.dumps(rows[0], separators=(",", ":")).encode()) < 1200
+    complete["drawing_differences"] = {"status": "reported", "total": len(rows), "items": rows}
+    receipt_path.write_text(json.dumps(complete), encoding="utf-8")
+    original = receipt_path.read_bytes()
+    trial = InjectedTrial(complete, [image])
+    trial.workspace, trial.receipts = tmp_path, [complete]
+    envelope = asyncio.run(trial.call({}))
+    message, _, _, _ = _convert(tmp_path, envelope)
+    visible = json.loads(message["content"])
+    assert visible["drawing_differences"]["items"] == rows
+    assert len(json.dumps(visible, ensure_ascii=False).encode()) <= 24_000
+    assert visible["submission"]["status"] == "not_submitted"
+    assert visible["next_action"]["tool"] == "submit_plan_reading"
+    # Page reads also keep the full small rows; no drill-down is required to
+    # recover offsets, declared spans or the original locations.
+    read_rows, args = [], {"field": "report:/drawing_differences/items"}
+    while args:
+        page = trial.read_draft(**args)
+        assert len(json.dumps(page, ensure_ascii=False).encode()) < 12_000
+        read_rows.extend(row["value"] for row in page["entries"])
+        args = page.get("next")
+    assert read_rows == rows
+    assert receipt_path.read_bytes() == original
+
+
+def test_large_difference_list_stays_bounded_and_references_original_evidence(tmp_path):
+    from src.agent.runtime_roles.trial_feedback import reference
+
+    complete, image, receipt_path, _ = _receipt(tmp_path, passed=True)
+    complete["trial_id"] = "trial_001"
+    rows = _opening_differences(100)
+    complete["drawing_differences"] = {"status": "reported", "total": len(rows), "items": rows}
+    receipt_path.write_text(json.dumps(complete), encoding="utf-8")
+    original = receipt_path.read_bytes()
+    trial = InjectedTrial(complete, [image])
+    trial.workspace, trial.receipts = tmp_path, [complete]
+    visible = asyncio.run(trial.call({}))["structuredContent"]
+    assert len(json.dumps(visible, ensure_ascii=False).encode()) <= 24_000
+    items = visible["drawing_differences"]["items"]
+    assert items["full_record"] == reference(complete, "/drawing_differences/items", rows)
+    assert items["items"][0]["summary"]["end_offsets_m"] == rows[0]["end_offsets_m"]
+    assert items["items"][0]["summary"]["declared"] == rows[0]["declared"]
+    args = dict(items["full_record"]["read"]["arguments"])
+    recovered = []
+    while args:
+        page = trial.read_draft(**args)
+        assert len(json.dumps(page, ensure_ascii=False).encode()) < 12_000
+        recovered.extend(row["value"] for row in page["entries"])
+        args = page.get("next")
+    assert recovered == rows
+    assert receipt_path.read_bytes() == original
+
+
 def test_giant_single_regularization_rejection_keeps_location_and_verified_full_receipt(tmp_path):
     complete, image, receipt_path, _ = _receipt(tmp_path, passed=False)
     complete["trial_id"] = "trial_001"

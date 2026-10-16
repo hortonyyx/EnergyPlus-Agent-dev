@@ -41,7 +41,8 @@ def _preview(receipt, pointer, value, *, budget=1800, depth=2, reference_for=Non
     if isinstance(value, Mapping):
         # Keep verdicts and locations ahead of potentially repeated audit ledgers.
         preferred = ("status", "id", "issue_id", "type", "code", "path", "field", "objects",
-                     "divider", "opening", "opening_id", "look_box", "bbox", "reason", "fix",
+                     "divider", "opening", "opening_id", "look_box", "bbox", "end_offsets_m",
+                     "declared", "gap", "reason", "fix",
                      "instruction", "total", "counts", "scope", "not_checked", "coverage",
                      "kind", "check", "summary", "grid_step_m", "findings", "items", "rejections")
         keys = [key for key in preferred if key in value]
@@ -65,7 +66,11 @@ def report_summary(receipt, field):
         return _preview(receipt, pointer, value)
     keep = ("schema", "status", "total", "counts", "items", "coverage", "scope", "meaning",
             "not_checked", "reason", "wall_placement", "corridor_space_ids", "findings", "hint")
-    return {key: _preview(receipt, _child(pointer, key), value[key]) for key in keep if key in value}
+    # A floor's located differences are decision evidence, not a repeated audit
+    # ledger. Keep a modest list together so offsets need no per-opening reads.
+    return {key: _preview(receipt, _child(pointer, key), value[key],
+                          budget=8000 if field == "drawing_differences" and key == "items" else 1800)
+            for key in keep if key in value}
 
 
 def bound_receipt_projection(receipt, visible, *, max_bytes=24_000):
@@ -117,12 +122,14 @@ def bound_receipt_projection(receipt, visible, *, max_bytes=24_000):
 
     projected = {}
     for field, value in visible.items():
-        if size(value) <= 3000:
+        budget = 10_000 if field == "drawing_differences" else 3000
+        if size(value) <= budget:
             projected[field] = value
             continue
         # Re-project the original field, not an already summarized value: every
         # JSON pointer and digest must resolve against the saved full receipt.
-        projected[field] = preview(receipt.get(field, value), _child("", field), original=field in receipt)
+        projected[field] = preview(receipt.get(field, value), _child("", field),
+                                   budget=budget, original=field in receipt)
     if size(projected) <= max_bytes:
         return projected
     # A large number of individually small fields can exceed the total budget.
@@ -221,7 +228,9 @@ def bounded_json_view(document, *, pointer="", offset=0, reference_for):
         entries = []
         for key in keys[offset:offset + 8]:
             child = _child(pointer, key)
-            preview = _preview(None, child, value[key], budget=350, reference_for=reference_for)
+            # Preserve a small row intact rather than replacing its useful
+            # measurements with a larger reference and incomplete summary.
+            preview = _preview(None, child, value[key], budget=1200, reference_for=reference_for)
             # A preview may itself contain several nested references. Bound the
             # complete entry, not just each original leaf, before returning it.
             if len(_bytes(preview)) > 1200:
