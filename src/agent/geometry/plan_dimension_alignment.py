@@ -161,8 +161,24 @@ def _append_coordinate_references(plan: dict[str, Any], chain: Mapping[str, Any]
             rows.append(row)
 
 
-def _snap_partitions(plan: dict[str, Any], *, axis: str, target_pixels: list[float],
-                     mpp: float, chain: Mapping[str, Any]) -> tuple[list[dict[str, Any]],
+def _wall_tick(original_cross: float, ticks: list[dict[str, Any]], mpp: float):
+    """Associate once in the reader's observed frame, never after another snap."""
+    nearest = min(ticks, key=lambda row: (abs(row["observed_pixel"] - original_cross),
+                                         row["chain"]["id"], row["tick_index"]))
+    distance = abs(nearest["observed_pixel"] - original_cross)
+    if distance * mpp >= MAX_ALIGNMENT_WORLD_M:
+        return None
+    tied = [row for row in ticks if abs(abs(row["observed_pixel"] - original_cross) - distance) < 1e-7]
+    if any(abs(row["target_pixel"] - nearest["target_pixel"]) * mpp > MAX_CHAIN_CROSS_CHECK_M
+           for row in tied):
+        # Proximity cannot choose between two different annotated wall positions.
+        return None
+    return nearest
+
+
+def _snap_partitions(plan: dict[str, Any], *, observed: Mapping[str, Any], axis: str,
+                     ticks: list[dict[str, Any]],
+                     mpp: float) -> tuple[list[dict[str, Any]],
                                                                     list[dict[str, Any]]]:
     changes: list[dict[str, Any]] = []
     rejections: list[dict[str, Any]] = []
@@ -178,7 +194,13 @@ def _snap_partitions(plan: dict[str, Any], *, axis: str, target_pixels: list[flo
         _, along_axis, _, old_cross, span = segments[0]
         if along_axis != expected_along:
             continue
-        target = min(target_pixels, key=lambda value: abs(value - old_cross))
+        original = next(row for row in observed.get("partitions", [])
+                        if str(row.get("id")) == partition_id)
+        original_cross = list(_segments(original["points"]))[0][3]
+        tick = _wall_tick(original_cross, ticks, mpp)
+        if tick is None:
+            continue
+        target, chain = tick["target_pixel"], tick["chain"]
         distance_m = abs(target - old_cross) * mpp
         if distance_m >= MAX_ALIGNMENT_WORLD_M:
             continue
@@ -198,6 +220,9 @@ def _snap_partitions(plan: dict[str, Any], *, axis: str, target_pixels: list[flo
             "to_pixel": round(target, 6),
             "movement_m": round((target - old_cross) * mpp, 6),
             "chain_id": chain["id"],
+            "observed_wall_pixel": original_cross,
+            "observed_tick_pixel": tick["observed_pixel"],
+            "tick_index": tick["tick_index"],
             "basis": "dimension",
         }
         safe, reason = _footprint_preserves_declarations(
@@ -219,8 +244,9 @@ def _snap_partitions(plan: dict[str, Any], *, axis: str, target_pixels: list[flo
     return changes, rejections
 
 
-def _snap_footprint(plan: dict[str, Any], *, axis: str, target_pixels: list[float],
-                    mpp: float, chain: Mapping[str, Any]) -> tuple[list[dict[str, Any]],
+def _snap_footprint(plan: dict[str, Any], *, observed: Mapping[str, Any], axis: str,
+                    ticks: list[dict[str, Any]],
+                    mpp: float) -> tuple[list[dict[str, Any]],
                                                                    list[dict[str, Any]]]:
     changes: list[dict[str, Any]] = []
     rejections: list[dict[str, Any]] = []
@@ -237,7 +263,7 @@ def _snap_footprint(plan: dict[str, Any], *, axis: str, target_pixels: list[floa
         if segment is None:
             rejections.append({
                 "object": f"footprint:{edge_index}", "kind": "perimeter",
-                "axis": axis, "chain_id": chain["id"], "basis": "dimension",
+                "axis": axis, "basis": "dimension",
                 "action": "rejected",
                 "reason": "perimeter edge is non-orthogonal before dimension alignment",
             })
@@ -245,7 +271,13 @@ def _snap_footprint(plan: dict[str, Any], *, axis: str, target_pixels: list[floa
         _, along_axis, _, old_cross, span = segment
         if along_axis != expected_along:
             continue
-        target = min(target_pixels, key=lambda value: abs(value - old_cross))
+        original_segment = next(row for row in _segments(observed["footprint_pixels"], closed=True)
+                                if row[0] == edge_index)
+        original_cross = original_segment[3]
+        tick = _wall_tick(original_cross, ticks, mpp)
+        if tick is None:
+            continue
+        target, chain = tick["target_pixel"], tick["chain"]
         distance_m = abs(target - old_cross) * mpp
         if distance_m >= MAX_ALIGNMENT_WORLD_M or abs(target - old_cross) <= 1e-9:
             continue
@@ -277,6 +309,9 @@ def _snap_footprint(plan: dict[str, Any], *, axis: str, target_pixels: list[floa
             "to_pixel": round(target, 6),
             "movement_m": round((target - old_cross) * mpp, 6),
             "chain_id": chain["id"],
+            "observed_wall_pixel": original_cross,
+            "observed_tick_pixel": tick["observed_pixel"],
+            "tick_index": tick["tick_index"],
             "basis": "dimension",
         }
         if not safe:
@@ -320,6 +355,21 @@ def align_plan_to_dimensions(plan: Mapping[str, Any], *, grid_step_m: float | No
     applied_chains = 0
     supplemental_chains = 0
     grid_nodes: dict[tuple[str, float], float] = {}
+    verified_ticks: dict[str, list[dict[str, Any]]] = {"x": [], "y": []}
+
+    def remember_ticks(chain, world_ticks):
+        verified_ticks[chain["axis"]].extend(
+            {"observed_pixel": pixel, "world_m": world, "chain": chain, "tick_index": i}
+            for i, (pixel, world) in enumerate(zip(chain["tick_pixels"], world_ticks)))
+
+    def calibration_first(entry):
+        index, raw = entry
+        chain, _ = _chain_shape(raw, index)
+        if chain is None:
+            return 2
+        axis = chain["axis"]
+        return int(_overall_direction(chain, _footprint_span(plan, axis),
+                                     max(2.0, MAX_ALIGNMENT_WORLD_M / _axis_scale(plan, axis))) is None)
 
     def accept_grid_nodes(chain, coordinates, check):
         keys = [(chain["axis"], round(pixel, 6)) for pixel in chain["tick_pixels"]]
@@ -333,7 +383,7 @@ def align_plan_to_dimensions(plan: Mapping[str, Any], *, grid_step_m: float | No
         grid_nodes.update(zip(keys, coordinates))
         return True
 
-    for index, raw in enumerate(raw_chains):
+    for index, raw in sorted(enumerate(raw_chains), key=calibration_first):
         chain, error = _chain_shape(raw, index)
         if error is not None:
             rejections.append(error)
@@ -372,13 +422,8 @@ def align_plan_to_dimensions(plan: Mapping[str, Any], *, grid_step_m: float | No
                     continue
                 if not accept_grid_nodes(chain, world_ticks, check):
                     continue
-                slope = (old_anchors[1][1] - old_anchors[0][1]) / (old_anchors[1][0] - old_anchors[0][0])
-                targets = [old_anchors[0][0] + (v - old_anchors[0][1]) / slope for v in world_ticks]
-                edges, edge_rejected = _snap_footprint(result, axis=axis, target_pixels=targets, mpp=mpp_before, chain=chain)
-                walls, wall_rejected = _snap_partitions(result, axis=axis, target_pixels=targets, mpp=mpp_before, chain=chain)
+                remember_ticks(chain, world_ticks)
                 _append_coordinate_references(result, chain, world_ticks)
-                changes.extend([*edges, *walls])
-                rejections.extend([*edge_rejected, *wall_rejected])
                 applied_chains += 1
                 items.append({**check, "action": "local_ticks_applied", "overall": False,
                               "origin_basis": "dimension_chain" if "start_world_m" in chain else "local_anchor",
@@ -454,17 +499,7 @@ def align_plan_to_dimensions(plan: Mapping[str, Any], *, grid_step_m: float | No
                 continue
 
             _append_coordinate_references(result, chain, world_ticks)
-            edge_changes, edge_rejections = _snap_footprint(
-                result, axis=axis, target_pixels=target_pixels,
-                mpp=_axis_scale(result, axis), chain=chain,
-            )
-            partition_changes, partition_rejections = _snap_partitions(
-                result, axis=axis, target_pixels=target_pixels,
-                mpp=_axis_scale(result, axis), chain=chain,
-            )
-            snapped = [*edge_changes, *partition_changes]
-            changes.extend(snapped)
-            rejections.extend([*edge_rejections, *partition_rejections])
+            remember_ticks(chain, world_ticks)
             applied_chains += 1
             supplemental_chains += 1
             items.append({
@@ -475,24 +510,14 @@ def align_plan_to_dimensions(plan: Mapping[str, Any], *, grid_step_m: float | No
                 "axis_cross_check": cross_check,
                 "exact_tick_world_m": [round(value, 9) for value in world_ticks],
                 "exact_tick_pixels": [round(value, 6) for value in target_pixels],
-                "snapped_object_count": len(snapped),
             })
             continue
 
         result[f"{axis}_anchors"] = [[start_px, start_world], [end_px, end_world]]
         _append_coordinate_references(result, chain, world_ticks)
-        mpp = abs((end_world - start_world) / (end_px - start_px))
-        edge_changes, edge_rejections = _snap_footprint(
-            result, axis=axis, target_pixels=target_pixels, mpp=mpp, chain=chain,
-        )
-        partition_changes, partition_rejections = _snap_partitions(
-            result, axis=axis, target_pixels=target_pixels, mpp=mpp, chain=chain,
-        )
-        snapped = [*edge_changes, *partition_changes]
+        remember_ticks(chain, world_ticks)
         accepted_axes.add(axis)
         applied_chains += 1
-        changes.extend(snapped)
-        rejections.extend([*edge_rejections, *partition_rejections])
         start_difference = start_world - old_start_world
         end_difference = end_world - old_end_world
         maximum_difference = max(abs(start_difference), abs(end_difference))
@@ -526,10 +551,28 @@ def align_plan_to_dimensions(plan: Mapping[str, Any], *, grid_step_m: float | No
                           ),
                       },
                       "exact_tick_world_m": [round(value, 9) for value in world_ticks],
-                      "exact_tick_pixels": [round(value, 6) for value in target_pixels],
-                      "snapped_object_count": len(snapped),
-                      "snapped_partition_count": sum(row["kind"] == "partition" for row in snapped),
-                      "snapped_footprint_edge_count": sum(row["kind"] == "perimeter" for row in snapped)})
+                      "exact_tick_pixels": [round(value, 6) for value in target_pixels]})
+
+    # All chains are interpreted before moving geometry. A wall's correspondence
+    # comes from its original pixel and the nearest observed tick across chains;
+    # a window-jamb chain cannot capture a wall moved by an earlier chain.
+    for axis, ticks in verified_ticks.items():
+        if not ticks:
+            continue
+        (p0, w0), (p1, w1) = result[f"{axis}_anchors"]
+        for tick in ticks:
+            tick["target_pixel"] = round(p0 + (tick["world_m"] - w0) * (p1 - p0) / (w1 - w0), 12)
+        edges, edge_rejected = _snap_footprint(
+            result, observed=plan, axis=axis, ticks=ticks, mpp=_axis_scale(result, axis))
+        walls, wall_rejected = _snap_partitions(
+            result, observed=plan, axis=axis, ticks=ticks, mpp=_axis_scale(result, axis))
+        changes.extend([*edges, *walls])
+        rejections.extend([*edge_rejected, *wall_rejected])
+    for item in items:
+        snapped = [row for row in changes if row["chain_id"] == item["chain_id"]]
+        item.update(snapped_object_count=len(snapped),
+                    snapped_partition_count=sum(row["kind"] == "partition" for row in snapped),
+                    snapped_footprint_edge_count=sum(row["kind"] == "perimeter" for row in snapped))
 
     report = {
         "schema_version": SCHEMA_VERSION,

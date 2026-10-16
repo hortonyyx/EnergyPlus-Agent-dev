@@ -17,8 +17,8 @@ from PIL import Image, UnidentifiedImageError
 from src.agent.geometry.plan_feedback import resolve_plan_lengths
 from src.agent.geometry.plan_input import normalize_plan_fields, plan_error_hint
 from src.agent.geometry.plan_dimension_alignment import align_plan_to_dimensions
-from src.agent.geometry.plan_ink_alignment import align_plan_to_ink, _set_reading_alignment
-from src.agent.geometry.plan_regularization import prepare_plan_junctions
+from src.agent.geometry.plan_ink_alignment import _set_reading_alignment
+from src.agent.geometry.plan_regularization import PlanRegularizationError
 from src.agent.geometry.lite_bim_regularization import DEFAULT_LITE_GRID_M, regularize_lite_plan
 from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
 from .plan_format import audit_plan_replacement, declaration_editability, format_failure, plan_format_errors
@@ -101,19 +101,36 @@ def canonical_plan_sha256(plan: Mapping[str, Any]) -> str:
     return hashlib.sha256(_canonical_plan_bytes(plan)).hexdigest()
 
 
+class ReadingAlignmentError(PlanRegularizationError):
+    """Preserve the actual stage and numeric input when reader preparation fails."""
+
+    def __init__(self, error, *, stage, plan, reading, alignment):
+        super().__init__(str(error), report=getattr(error, "report", None))
+        self.numeric_plan = copy.deepcopy(plan)
+        self.failure_context = {
+            "failure_stage": stage,
+            "reading_alignment": copy.deepcopy(reading),
+            "alignment": {**copy.deepcopy(alignment), "status": "failed", "failed_stage": stage},
+        }
+
+
 def _reading_align(
     numeric: Mapping[str, Any], *, image_path: Path | None, image_name: str,
     grid_step_m: float | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
-    """Prepare, align and strictly preflight one reader numeric plan."""
+    """Apply declared dimensions and the common grid in one observed pixel frame.
+
+    Ink is visual evidence for the reader, not authority to move geometry under
+    an independently declared calibration. The single-model path uses this same
+    grid without an extra image-dependent mutation.
+    """
 
     result = copy.deepcopy(dict(numeric))
-    baseline = copy.deepcopy(result)
-    # Dimension chains are reader evidence consumed by align_plan_to_dimensions,
-    # not literal compiler input.  Keep them on the live alignment path while
-    # testing the same geometry-only baseline that Toolkit will eventually see.
-    baseline.pop("dimension_chains", None)
-    reading_alignment: dict[str, Any] = {}
+    reading_alignment: dict[str, Any] = {"ink": {
+        "status": "not_applied",
+        "reason": "Original-image ink is reviewed on the overlay; it does not overwrite declared pixels or calibration.",
+        "summary": {"moved_or_aligned": 0, "not_moved": 0, "rejected": 0},
+    }}
     alignment: dict[str, Any] = {
         "schema_version": "plan_trial_alignment_v1",
         "status": "not_checked",
@@ -126,78 +143,21 @@ def _reading_align(
         try:
             with Image.open(image_path) as original:
                 image_size = original.size
-                _, preparation = prepare_plan_junctions(
-                    copy.deepcopy(baseline), image_size=image_size, image_name=image_name,
-                )
-                preparation = copy.deepcopy(preparation)
-                preparation.update(
-                    preflight_only=True,
-                    changes_applied_to_returned_plan=False,
-                    application="Toolkit regularization reruns and records these changes.",
-                )
-                alignment["junction_preparation"] = preparation
-                result, ink_report = align_plan_to_ink(original, result)
-            reading_alignment["ink"] = ink_report
-        except (UnidentifiedImageError, OSError) as error:
-            # Some isolated unit harnesses use hash-stable placeholder bytes
-            # instead of a decodable drawing.  Keep their historical literal
-            # behavior and make the skipped alignment explicit.
-            reading_alignment["ink"] = {
-                "status": "unavailable",
-                "summary": {"moved_or_aligned": 0, "not_moved": 0, "rejected": 0},
-                "reason": f"original image could not be decoded for ink alignment: {error}",
-            }
-    if "dimension_chains" in result:
-        result, dimension_report = align_plan_to_dimensions(result, grid_step_m=grid_step_m)
-        reading_alignment["dimensions"] = dimension_report
-        if grid_step_m is not None and dimension_report["rejections"]:
-            from src.agent.geometry.plan_regularization import PlanRegularizationError
-            raise PlanRegularizationError(
-                "dimension chain: " + str(dimension_report["rejections"][0]), report=dimension_report)
-
-    if image_size is not None:
-        _, post_report = prepare_plan_junctions(
-            copy.deepcopy(result), image_size=image_size, image_name=image_name,
-        )
-        post_report = copy.deepcopy(post_report)
-        post_report.update(
-            preflight_only=True,
-            changes_applied_to_returned_plan=False,
-            application="Toolkit regularization reruns and records these changes.",
-        )
-        alignment["post_alignment_preparation"] = post_report
-
-        def effective_compile_error(report: Mapping[str, Any]) -> object:
-            return (report.get("compile_error") if report.get("status") == "applied"
-                    else report.get("compile_error_before"))
-
-        aligned_error = effective_compile_error(post_report)
-        original_report = alignment["junction_preparation"]
-        original_error = (effective_compile_error(original_report)
-                          if isinstance(original_report, Mapping) else None)
-        if aligned_error is None:
-            alignment["status"] = "aligned"
-        elif original_error is None and grid_step_m is None:
-            result = baseline
-            alignment["status"] = "rolled_back_to_original"
-            alignment["fallback"] = {
-                "status": "applied",
-                "reason": (
-                    "Aligned plan failed strict compilation while the normalized "
-                    "pre-alignment plan passed its preparation preflight; sent the "
-                    "original geometry to Toolkit regularization."
-                ),
-                "aligned_compile_error": aligned_error,
-                "original_compile_error": None,
-            }
-        else:
-            alignment["status"] = "strict_compile_failed"
-            alignment["fallback"] = {
-                "status": "not_applied",
-                "reason": "Both the aligned and normalized pre-alignment plans failed strict compilation.",
-                "aligned_compile_error": aligned_error,
-                "original_compile_error": original_error,
-            }
+        except (UnidentifiedImageError, OSError):
+            # Isolated tests may use placeholder bytes; Toolkit still checks
+            # real image bounds when compiling the production draft.
+            pass
+    stage = "dimension_alignment"
+    try:
+        if "dimension_chains" in result:
+            result, dimension_report = align_plan_to_dimensions(result, grid_step_m=grid_step_m)
+            reading_alignment["dimensions"] = dimension_report
+            if dimension_report["rejections"]:
+                raise PlanRegularizationError(
+                    "dimension chain: " + str(dimension_report["rejections"][0]), report=dimension_report)
+    except (ValueError, TypeError, KeyError) as error:
+        raise ReadingAlignmentError(error, stage=stage, plan=result,
+                                    reading=reading_alignment, alignment=alignment) from error
     for key in ("ink", "dimensions"):
         report = reading_alignment.get(key)
         if isinstance(report, Mapping):
@@ -214,8 +174,12 @@ def _reading_align(
             image_size = tuple(max(2, math.ceil(max(
                 [float(p[i]) for p in points] + [float(a[0]) for a in result[f"{axis}_anchors"]])) + 1)
                                for i, axis in enumerate(("x", "y")))
-        result, lite_report = regularize_lite_plan(
-            result, image_size=image_size, image_name=image_name, grid_step_m=grid_step_m)
+        try:
+            result, lite_report = regularize_lite_plan(
+                result, image_size=image_size, image_name=image_name, grid_step_m=grid_step_m)
+        except (ValueError, TypeError, KeyError) as error:
+            raise ReadingAlignmentError(error, stage="lite_regularization", plan=result,
+                                        reading=reading_alignment, alignment=alignment) from error
         reading_alignment["lite_bim"] = lite_report
         alignment["status"] = "lite_grid_applied"
     return result, reading_alignment, alignment
@@ -529,6 +493,21 @@ class PlanTrial:
             return str(path)
         return path.resolve().relative_to(self.workspace).as_posix()
 
+    def _verify_failed_stage_input(self, receipt):
+        filename = receipt.get("failed_stage_input_file")
+        digest = receipt.get("failed_stage_input_sha256")
+        if filename is None and digest is None:
+            return
+        if self.workspace is None and self.receipt_directory is None:
+            return  # In-memory trial has no persisted input to restore.
+        if not isinstance(filename, str) or not isinstance(digest, str):
+            raise ValueError("trial failed-stage input receipt is incomplete")
+        path = _inside(self.workspace or self.receipt_directory, filename)
+        if not path.is_file() or _file_sha256(path) != digest:
+            raise ValueError(f"trial failed-stage input changed: {path}")
+        if not isinstance(json.loads(path.read_bytes()), dict):
+            raise ValueError("trial failed-stage input must be a plan object")
+
     def _load_receipts(self) -> None:
         if self.receipt_directory is None or not self.receipt_directory.is_dir():
             return
@@ -536,6 +515,7 @@ class PlanTrial:
             receipt = json.loads(path.read_bytes())
             if not isinstance(receipt, dict) or receipt.get("receipt_file") != self._relative_to_workspace(path):
                 raise ValueError(f"invalid trial receipt identity: {path}")
+            self._verify_failed_stage_input(receipt)
             input_path = _inside(self.workspace or self.receipt_directory, receipt["input_plan_file"])
             if not input_path.is_file() or _file_sha256(input_path) != receipt.get("plan_sha256"):
                 raise ValueError(f"trial input plan changed: {input_path}")
@@ -672,21 +652,37 @@ class PlanTrial:
         unaligned_numeric = copy.deepcopy(numeric)
         unaligned_numeric_bytes = _canonical_plan_bytes(numeric)
         unaligned_numeric_sha256 = hashlib.sha256(unaligned_numeric_bytes).hexdigest()
-        # Reader-only alignment happens after profile/quantity resolution, when
-        # every plan coordinate is a numeric original-image pixel.  The shared
-        # compiler remains literal and sees the aligned, fully audited draft.
-        numeric, reading_alignment, alignment = _reading_align(
-            numeric, image_path=image_path, image_name=self.image_name, grid_step_m=self.grid_step_m,
-        )
-        numeric_bytes = _canonical_plan_bytes(numeric)
-        numeric_sha256 = hashlib.sha256(numeric_bytes).hexdigest()
-        numeric_path = None
         unaligned_numeric_path = None
-        profile_records = []
         if self.receipt_directory is not None:
             self.receipt_directory.mkdir(parents=True, exist_ok=True)
             unaligned_numeric_path = self.receipt_directory / f"trial_{number:03d}_unaligned_input.json"
             unaligned_numeric_path.write_bytes(unaligned_numeric_bytes)
+        try:
+            numeric, reading_alignment, alignment = _reading_align(
+                numeric, image_path=image_path, image_name=self.image_name, grid_step_m=self.grid_step_m,
+            )
+        except ReadingAlignmentError as error:
+            failed_bytes = _canonical_plan_bytes(error.numeric_plan)
+            failed_path = None
+            if self.receipt_directory is not None:
+                failed_path = self.receipt_directory / f"trial_{number:03d}_failed_stage_input.json"
+                failed_path.write_bytes(failed_bytes)
+            error.failure_context.update(
+                unaligned_numeric_input_file=(self._relative_to_workspace(unaligned_numeric_path)
+                                              if unaligned_numeric_path else None),
+                unaligned_numeric_input_sha256=unaligned_numeric_sha256,
+                failed_stage_input_file=(self._relative_to_workspace(failed_path) if failed_path else None),
+                failed_stage_input_sha256=hashlib.sha256(failed_bytes).hexdigest(),
+                field_aliases=aliases, length_bindings=length_bindings,
+                measurement_bindings=measurement_bindings,
+            )
+            raise
+        numeric_bytes = _canonical_plan_bytes(numeric)
+        numeric_sha256 = hashlib.sha256(numeric_bytes).hexdigest()
+        numeric_path = None
+        profile_records = []
+        if self.receipt_directory is not None:
+            self.receipt_directory.mkdir(parents=True, exist_ok=True)
             numeric_path = self.receipt_directory / f"trial_{number:03d}_aligned_input.json"
             numeric_path.write_bytes(numeric_bytes)
             profile_folder = self.receipt_directory / f"trial_{number:03d}_profiles"
@@ -846,6 +842,7 @@ class PlanTrial:
                    next((row for row in self.receipts if row["trial_id"] == trial_id), None))
         if receipt is not None:
             if isinstance(field, str) and field.startswith("report:"):
+                self._verify_failed_stage_input(receipt)
                 if self.workspace is not None:
                     saved = _inside(self.workspace, receipt["receipt_file"])
                     if not saved.is_file() or json.loads(saved.read_bytes()) != receipt:
@@ -862,6 +859,7 @@ class PlanTrial:
                 inherited = next((row for row in prior.receipts if row.get("receipt_file") == receipt_file), None)
                 if inherited is None or hashlib.sha256(_plan_bytes(inherited)).hexdigest() != digest:
                     raise ValueError("inherited trial full receipt changed since admission")
+                prior._verify_failed_stage_input(inherited)
                 if prior.workspace is None:
                     raise ValueError("inherited trial report has no durable workspace")
                 path = _inside(prior.workspace, receipt_file)
@@ -947,6 +945,7 @@ class PlanTrial:
         saved = _inside(self.workspace, receipt["receipt_file"])
         if not saved.is_file() or json.loads(saved.read_bytes()) != receipt:
             raise ValueError("failed trial receipt changed since execution")
+        self._verify_failed_stage_input(receipt)
         plan = self.load_plan(receipt)
         if canonical_plan_sha256(plan) != receipt["plan_sha256"]:
             raise ValueError("failed trial declaration hash mismatch")
@@ -1158,7 +1157,7 @@ class PlanTrial:
                     "hint": CORRIDOR_REVIEW_HINT,
                 },
                 "returned_images": [],
-                "reason": f"numeric_plan_resolution: {error}",
+                "reason": f"{getattr(error, 'failure_context', {}).get('failure_stage', 'numeric_plan_resolution')}: {error}",
                 "repair_hint": plan_error_hint(normalized, str(error)),
                 "unhosted_openings": located_findings(unhosted_openings),
                 "loose_partition_ends": located_findings(loose_partition_ends),
@@ -1169,7 +1168,14 @@ class PlanTrial:
                 "operations": copy.deepcopy(operations),
                 "regularization_failure": copy.deepcopy(getattr(error, "report", None)),
                 **(format_failure(errors) if errors else {}),
+                **copy.deepcopy(getattr(error, "failure_context", {})),
             }
+            if isinstance(error, ReadingAlignmentError):
+                receipt["repair_coordinate_basis"] = (
+                    "Operations edit the saved original declaration. Failure coordinates refer to failed_stage_input_file; "
+                    "compare the named object's original pixels before changing it. Do not copy an adopted coordinate "
+                    "into only one endpoint of a shared junction."
+                )
             receipt["editable_draft"] = {**declaration_editability(normalized),
                 "plan_sha256": plan_hash, "input_plan_file": receipt["input_plan_file"],
                 "validation_passed": False}
@@ -1467,6 +1473,7 @@ class PlanTrial:
                 paths.append(fixed)
         for receipt in self.receipts:
             for key in ("receipt_file", "input_plan_file", "aligned_numeric_input_file",
+                        "unaligned_numeric_input_file", "failed_stage_input_file",
                         "compiled_numeric_plan_file"):
                 if isinstance(receipt.get(key), str):
                     path = _inside(self.workspace, receipt[key])

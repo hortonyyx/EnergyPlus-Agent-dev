@@ -495,8 +495,9 @@ class ReaderTools:
                     "dimension_chains rows use id, axis, segments_mm, tick_pixels and source_refs; total_mm and "
                     "start_world_m are optional. tick_pixels has one more item than segments_mm. Code accumulates "
                     "shared chain nodes and adopts the configured Lite grid; do not hand-round or distribute residuals. "
-                    "Nearby ink alignment uses this plan's scale; original dimensions remain auditable while adopted "
-                    "values drive geometry. Failed returns named fields/objects and "
+                    "Reuse exact original-pixel coordinates at shared junctions and on opening hosts. "
+                    "Dimensions bind once against original ticks; nearby ink does not overwrite geometry. "
+                    "Original dimensions remain auditable. Failed returns named fields/objects and "
                     "repair actions. Operations use the remembered draft and preserve unpointed objects. Never omit an "
                     "observed wall/opening or change room topology to pass. Only passed trials can be submitted."
                 ),

@@ -20,7 +20,9 @@ _PLAN_CORE = """Preserve every actual room, wall, opening and connection. Keep s
 assumptions. task.coordinate_contract fixes floor/origin; world x East, y North, z Up and
 absolute. A shared bounding-box origin may lie outside an L-shaped footprint: never replace
 it with a physical wall corner or a local crop/step origin. Keep the assigned datum stable.
-Plan points and first anchor values are ORIGINAL pixels. Second anchor values,
+Plan points and first anchor values are ORIGINAL pixels, even in resized views. Use the
+returned pixel grid/transform; check anchors against the original dimension extension lines.
+Second anchor values,
 z_floor, ceiling_height and opening z are metres. Passing checks never proves fidelity."""
 
 _PLAN_FIRST_DRAFT = """Start from the whole drawing and the batched enlarged blocks. In the same pass, inventory
@@ -37,8 +39,11 @@ to you. Original annotations remain evidence, while the adopted Lite BIM coordin
 dimensions are regularized on the configured grid (currently 0.1 m). Do not hand-round,
 allocate a remainder, or repeat pixel measurements merely to remove a sub-grid tail.
 
-Use approximate original pixels for ALL actual walls, openings and room seeds. Nearby ink,
-dimension chains, shared endpoints and openings on hosts are resolved by code. Complete plan example:
+Use observed original pixels for ALL actual walls, openings and room seeds. Reuse exactly
+the same coordinates at shared wall junctions and for openings on a wall. A door/window
+must lie wholly on its host segment, without crossing a T-junction. Code applies verified
+dimensions and the common grid; it does not guess wall identity from nearby ink or repair
+missing connections. Complete plan example:
 {example}
 Replace synthetic values with observations. Use partitions[].points, openings[].p1/p2,
 space_seeds[].point, not wall/room polygons or opening room/space_id/facade fields.

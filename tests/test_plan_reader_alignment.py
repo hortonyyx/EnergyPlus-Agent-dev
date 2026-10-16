@@ -2,6 +2,7 @@ import asyncio
 import copy
 import hashlib
 import json
+import pytest
 
 from PIL import Image, ImageDraw
 from shapely.geometry import Polygon
@@ -229,46 +230,85 @@ def test_dimension_move_rejects_shrinking_declared_step_below_kernel_minimum():
     assert Polygon(aligned["footprint_pixels"]).is_valid
 
 
-def test_reading_alignment_rolls_back_when_only_original_strictly_compiles(tmp_path, monkeypatch):
-    image_path = tmp_path / "plan.png"
-    _drawing().save(image_path)
+def test_reader_preserves_declared_geometry_across_different_ink(tmp_path):
     original = _plan()
     original["openings"] = []
-    original["dimension_chains"] = [{
-        "id": "X_OVERALL",
-        "axis": "x",
-        "segments_mm": [9000, 9000],
-        "total_mm": 18000,
-        "tick_pixels": [20, 110, 200],
-        "source_refs": ["plan.png: dimensions"],
-    }]
+    results = []
+    for with_ink in (False, True):
+        image_path = tmp_path / f"plan-{with_ink}.png"
+        _drawing(with_ink=with_ink).save(image_path)
+        effective, reading, alignment = trial_module._reading_align(
+            original, image_path=image_path, image_name=image_path.name, grid_step_m=.1)
+        assert reading["ink"]["status"] == "not_applied"
+        assert alignment["status"] == "lite_grid_applied"
+        results.append(effective)
+    for field in ("footprint_pixels", "partitions", "x_anchors", "y_anchors"):
+        assert results[0][field] == results[1][field] == original[field]
 
-    def break_one_junction(_image, plan):
-        aligned = copy.deepcopy(plan)
-        aligned["partitions"][1]["points"][-1][0] = 105.0
-        return aligned, {
-            "schema_version": "test_alignment",
-            "status": "applied",
-            "summary": {"moved_or_aligned": 1, "not_moved": 0, "rejected": 0},
-            "items": [],
-            "rejections": [],
-        }
 
-    monkeypatch.setattr(trial_module, "align_plan_to_ink", break_one_junction)
-    effective, reading, alignment = trial_module._reading_align(
-        original, image_path=image_path, image_name="plan.png",
-    )
+def test_dimensions_bind_once_to_original_ticks_independent_of_chain_order():
+    original = _plan()
+    original.update(x_anchors=[[0, 0], [1000, 10]], y_anchors=[[0, 0], [300, 3]],
+                    footprint_pixels=[[0, 0], [1000, 0], [1000, 300], [0, 300]],
+                    partitions=[{"id": "wall", "points": [[500, 0], [500, 300]],
+                                 "source_refs": ["drawing: wall"]},
+                                {"id": "branch", "points": [[0, 150], [500, 150]],
+                                 "source_refs": ["drawing: junction"]}],
+                    openings=[{"id": "door", "kind": "door", "p1": [500, 30], "p2": [500, 120],
+                               "z": [0, 2.1], "source_refs": ["drawing: door"]}])
+    wall_chain = {"id": "wall-chain", "axis": "x", "segments_mm": [5000, 5000],
+                  "tick_pixels": [0, 500, 1000], "source_refs": ["drawing: wall chain"]}
+    jamb_chain = {"id": "jamb-chain", "axis": "x", "segments_mm": [5200, 4800],
+                  "tick_pixels": [0, 520, 1000], "source_refs": ["drawing: window jamb chain"]}
+    for chains in ([wall_chain, jamb_chain], [jamb_chain, wall_chain]):
+        effective, report = align_plan_to_dimensions({**original, "dimension_chains": chains}, grid_step_m=.1)
+        assert not report["rejections"]
+        assert effective["partitions"] == original["partitions"]
+        assert effective["openings"] == original["openings"]
+        moves = [r for r in report["changes"] if r["object"] == "partition:wall"]
+        assert len(moves) == 1 and moves[0]["chain_id"] == "wall-chain"
+        assert moves[0]["observed_wall_pixel"] == moves[0]["observed_tick_pixel"] == 500
 
-    assert effective["partitions"][1]["points"][-1] == [109, 89]
-    assert "dimension_chains" not in effective
-    assert reading["ink"]["status"] == "applied"
-    assert reading["dimensions"]["summary"]["chains_applied"] == 1
-    assert alignment["status"] == "rolled_back_to_original"
-    assert alignment["fallback"]["status"] == "applied"
-    assert alignment["fallback"]["aligned_compile_error"]
-    assert alignment["fallback"]["original_compile_error"] is None
-    assert alignment["junction_preparation"]["preflight_only"] is True
-    assert alignment["post_alignment_preparation"]["changes_applied_to_returned_plan"] is False
+
+@pytest.mark.parametrize("tamper", ["changed", "missing"])
+def test_failed_dimensions_preserve_stage_and_original_numeric_input(tmp_path, tamper):
+    workspace = tmp_path / "trial"
+    (workspace / "images").mkdir(parents=True)
+    _drawing().save(workspace / "images" / "plan.png")
+    value = _plan()
+    value["dimension_chains"] = [{"id": "bad-sum", "axis": "x", "segments_mm": [9000, 9000],
+                                  "total_mm": 19000, "tick_pixels": [20, 110, 200],
+                                  "source_refs": ["drawing: original printed chain"]}]
+    trial = PlanTrial(None, image_name="plan.png", workspace=workspace,
+                      receipt_directory=workspace / "trial_receipts")
+    envelope = asyncio.run(trial.call(value))
+    receipt = trial.receipts[-1]
+    assert receipt["status"] == "failed" and receipt["failure_stage"] == "dimension_alignment"
+    assert receipt["reading_alignment"]["dimensions"]["rejections"][0]["chain_id"] == "bad-sum"
+    assert receipt["unaligned_numeric_input_file"] and receipt["failed_stage_input_file"]
+    for path_field, hash_field in (("unaligned_numeric_input_file", "unaligned_numeric_input_sha256"),
+                                   ("failed_stage_input_file", "failed_stage_input_sha256")):
+        raw = (workspace / receipt[path_field]).read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == receipt[hash_field]
+    assert json.loads((workspace / receipt["unaligned_numeric_input_file"]).read_bytes())["dimension_chains"] == value["dimension_chains"]
+    assert envelope["structuredContent"]["failure_stage"] == "dimension_alignment"
+    assert receipt["compiled_numeric_plan_file"] is None
+    assert "Operations edit the saved original" in envelope["structuredContent"]["repair_coordinate_basis"]
+    image_sha = hashlib.sha256((workspace / "images" / "plan.png").read_bytes()).hexdigest()
+    (workspace / "inputs.json").write_text(json.dumps({"images": {"plan.png": {"sha256": image_sha}}}), encoding="utf-8")
+    event = {"receipt_file": receipt["receipt_file"], "plan_sha256": receipt["plan_sha256"]}
+    assert trial.verified_failed_draft(image_sha, **event)[1]["validation_passed"] is False
+    failed_path = workspace / receipt["failed_stage_input_file"]
+    if tamper == "changed":
+        failed_path.write_text("{}", encoding="utf-8")
+    else:
+        failed_path.unlink()
+    with pytest.raises(ValueError, match="failed-stage input changed"):
+        PlanTrial(None, image_name="plan.png", workspace=workspace, receipt_directory=workspace / "trial_receipts")
+    with pytest.raises(ValueError, match="failed-stage input changed"):
+        trial.verified_failed_draft(image_sha, **event)
+    with pytest.raises(ValueError, match="failed-stage input changed"):
+        trial.read_draft(field="report:/alignment")
 
 
 def test_missing_ink_never_moves_geometry_and_is_explicit():
@@ -610,10 +650,11 @@ def test_trial_compiles_aligned_numeric_plan_and_returns_only_compact_summary(tm
         envelope = await trial.call(value)
         receipt = trial.receipts[-1]
         assert receipt["status"] == "passed"
-        assert receipt["reading_alignment"]["ink"]["items"]
+        assert receipt["reading_alignment"]["ink"]["status"] == "not_applied"
         assert receipt["reading_alignment"]["dimensions"]["summary"]["chains_applied"] == 1
-        visible = envelope["structuredContent"]["reading_alignment"]
-        assert "items" not in visible["ink"] and "full_list" in visible
+        visible = envelope["structuredContent"]
+        assert visible["audit_refs"]["reading_alignment"]["json_pointer"] == "/reading_alignment"
+        assert visible["audit_refs"]["reading_alignment"]["read"]["arguments"]["field"] == "report:/reading_alignment"
         numeric = trial.numeric_plan(receipt)
         assert receipt["unaligned_numeric_input_file"] != receipt["aligned_numeric_input_file"]
         unaligned = json.loads(
