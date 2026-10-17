@@ -357,6 +357,10 @@ def estimate_chat_request(body: Mapping[str, Any], *, profile: ModelProfile | No
                 detail=_image_detail(body, reference))
         elif selected.image_estimator == "decoded_pixels_v0":
             tokens, resized_w, resized_h = width * height, width, height
+        elif selected.image_estimator == "deepseek_vision_max1024_v1":
+            # Official per-image maximum, not a measurement of actual usage or
+            # a local resize. Preserve the transmitted pixel dimensions.
+            tokens, resized_w, resized_h = 1024, width, height
         else:
             raise ValueError(f"unsupported image estimator {selected.image_estimator!r}")
         images.append(ImageTokenEstimate(reference, width, height, resized_w, resized_h,

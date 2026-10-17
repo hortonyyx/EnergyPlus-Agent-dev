@@ -587,7 +587,7 @@ def parser():
     p.add_argument("--mesh", type=Path)
     p.add_argument("--image-kind", choices=("drawings", "mesh_views", "photos", "unknown"), default="drawings")
     p.add_argument("--scope", default="Local observation and coordinator operations; no whole-case run authorized.")
-    p.add_argument("--provider", choices=("scripted", *(p for p in LIVE_PROVIDERS if p not in {CHATGPT_SUBSCRIPTION, "opencode-go"})), required=True)
+    p.add_argument("--provider", choices=("scripted", *(p for p in LIVE_PROVIDERS if p not in {CHATGPT_SUBSCRIPTION, "opencode-go", "deepseek"})), required=True)
     p.add_argument("--model", default="Qwen3.8-27B")
     p.add_argument("--credentials-file", type=Path)
     p.add_argument("--script", type=Path)

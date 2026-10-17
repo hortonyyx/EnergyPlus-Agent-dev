@@ -166,6 +166,8 @@ class Runtime:
 
     async def run(self, messages: list[dict], *, message_sources=None,
                   image_originals=None, resume=False) -> dict:
+        if self.versions.remote_model.route_id == "deepseek" and self.reasoning_history != "all":
+            raise ValueError("DeepSeek tool calls require reasoning_history=all")
         if self.versions.remote_model.route_id == "opencode-go":
             from .opencode_go import model_contract
             if model_contract(self.model)[0] == "openai_responses" and self.reasoning_history != "all":

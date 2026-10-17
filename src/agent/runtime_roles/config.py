@@ -68,8 +68,6 @@ class RoleConfiguration(BaseModel):
             raise ValueError("scripted role routes are admitted only by an explicit offline runtime")
         if self.provider not in LIVE_PROVIDERS:
             raise ValueError(f"role provider {self.provider!r} is not a reviewed live provider")
-        if "deepseek" in self.model.casefold():
-            raise ValueError("DeepSeek is outside the approved role-division batch")
         validate_provider_model(self.provider, self.model)
         get_model_profile(self.model, strict=True)
         provider_parameters(

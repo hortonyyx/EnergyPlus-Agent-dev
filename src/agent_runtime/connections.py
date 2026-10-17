@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict
 from .providers import (
     CHATGPT_SUBSCRIPTION,
     CHATGPT_BASE_URL,
+    DEEPSEEK,
     GLM_SUBSCRIPTION_ANTHROPIC,
     OPENCODE_GO,
     SUBSCRIPTION_PROVIDERS,
@@ -74,6 +75,20 @@ def paratera_credentials(path: Path | None) -> tuple[str, str]:
     return _public_base_url(base_url), key
 
 
+def deepseek_credentials(path: Path | None) -> tuple[str, str]:
+    """Use only the explicitly selected file and the official DeepSeek endpoint."""
+    if path is None or not Path(path).is_file():
+        raise ValueError("DeepSeek requires an explicit existing credentials file")
+    from dotenv import dotenv_values
+    private = dotenv_values(path, interpolate=False)
+    base_url, key = private.get("DEEPSEEK_BASE_URL"), private.get("DEEPSEEK_API_KEY")
+    if base_url not in {"https://api.deepseek.com", "https://api.deepseek.com/v1"}:
+        raise ValueError("DEEPSEEK_BASE_URL must be the reviewed official HTTPS endpoint")
+    if not isinstance(key, str) or not key.strip():
+        raise ValueError("DEEPSEEK_API_KEY is missing from the specified credentials file")
+    return base_url, key
+
+
 @dataclass(frozen=True)
 class ResolvedConnection:
     """A private credential paired with its serializable public identity."""
@@ -118,6 +133,11 @@ def resolve_connection(provider: str, credentials_file: Path | None,
         billing_mode = "subscription"
     elif provider == "paratera":
         base_url, key = paratera_credentials(credentials_file)
+        billing_mode = "metered"
+    elif provider == DEEPSEEK:
+        from .providers import validate_provider_model
+        validate_provider_model(provider, model)
+        base_url, key = deepseek_credentials(credentials_file)
         billing_mode = "metered"
     else:
         raise ValueError(f"no live connection resolver for provider {provider!r}")

@@ -278,7 +278,7 @@ def _usage_counter(raw, *keys):
 
 
 def _cache_read_counter(raw):
-    direct = _usage_counter(raw, "cache_read_input_tokens")
+    direct = _usage_counter(raw, "cache_read_input_tokens", "prompt_cache_hit_tokens")
     if direct is not None:
         return direct
     for name in ("input_tokens_details", "prompt_tokens_details"):
@@ -330,6 +330,8 @@ def request_accounting_from_store(
             tokens, _, _ = openai_image_tokens(width, height, profile, detail=block.get("detail", "auto"))
         elif profile.image_estimator == "decoded_pixels_v0":
             tokens = width * height
+        elif profile.image_estimator == "deepseek_vision_max1024_v1":
+            tokens = 1024
         else:
             raise ValueError(
                 f"unsupported image estimator {profile.image_estimator!r}"
@@ -379,7 +381,7 @@ def request_accounting_from_store(
     accounting = account_request_usage(
         usage, image_tokens_estimate=image_tokens, pricing=pricing,
         billing_mode="subscription" if identity.route_id in {"glm-subscription", "glm-subscription-anthropic", "chatgpt-subscription", "opencode-go"} else "metered_or_unknown",
-        input_includes_images=identity.route_id in {"chatgpt-subscription", "opencode-go"})
+        input_includes_images=identity.route_id in {"chatgpt-subscription", "opencode-go", "deepseek"})
     if reconciliation is not None:
         receipt = reconciliation.payload.reconciliation
         settled = receipt.settlement

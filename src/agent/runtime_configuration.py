@@ -154,6 +154,10 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
             raise ValueError("ChatGPT subscription supports single_model and role_division; external_coordinator_mcp is not supported")
         if mode == "external_coordinator_mcp" and case["provider"] == "opencode-go":
             raise ValueError("OpenCode Go supports single_model and role_division only")
+        if mode == "external_coordinator_mcp" and case["provider"] == "deepseek":
+            raise ValueError("DeepSeek supports single_model and role_division only")
+        if case["provider"] == "deepseek" and case.get("reasoning_history", "all") != "all":
+            raise ValueError("DeepSeek requires reasoning_history=all")
         if case["provider"] == CHATGPT_SUBSCRIPTION and case.get("reasoning_history", "all") != "all":
             raise ValueError("ChatGPT subscription requires reasoning_history=all")
         model = case.get("model")
@@ -182,8 +186,6 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
             if mismatched:
                 raise ValueError("top-level coordinator routing must match roles.coordinator: "
                                  + ", ".join(mismatched))
-        if "deepseek" in model.casefold():
-            raise ValueError("DeepSeek is outside this approved batch")
         if "seconds" not in case.get("limits", {}):
             raise ValueError("set seconds explicitly; null disables the single_model overall deadline")
         seconds = case["limits"]["seconds"]
